@@ -1,0 +1,27 @@
+guardserv.exe/(SIM|PROD)
+guardian.exe/(SIM|PROD)
+License not received, trying again
+Limit request failed
+In VIAMessaging ConsumerThread.*Cannot send message.*Session is not active
+SERVER is
+license
+accepted my login
+TT_CLIENT_
+TT_NO_CLIENT
+closed connection
+Risk server ip
+product table
+Going online
+DH params
+OpenExchangePrices
+RequestTimeoutTCB
+normal termination
+RQ36: invalid transaction type
+missing underlyingBasic
+missing classBasic
+Error querying current option greeks
+Connection ID mismatch
+consecutive client status messages
+but not equal its cabinet price
+logout message received from host
+DHDecrypt
