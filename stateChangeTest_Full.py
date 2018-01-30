@@ -15,7 +15,7 @@ orderSession = Manager().getOrderFillSession()
 allCustDefaults = Manager().getCustomers()
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-products = priceSession.getProducts(prodName='LRA')
+products = priceSession.getProducts(prodName='ZARB')
 product = products[0]
 contracts = priceSession.getContracts(product)
 contract = contracts[0]
