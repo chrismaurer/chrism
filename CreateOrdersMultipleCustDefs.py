@@ -1,8 +1,9 @@
+import time
 from pyrate.ttapi.manager import Manager
 from pyrate.ttapi.order import TTAPIOrder
 from ttapi import aenums, cppclient
 priceSession = Manager().getPriceSession()
-orderSession0 = Manager().getOrderFillSessions()[0]
+orderSession0 = Manager().getOrderFillSessions()[-1]
 orderSession1 = Manager().getOrderFillSessions()[-1]
 custDefaults0 = Manager().getCustomers()
 custDefaults1 = Manager().getCustomers()[0]
@@ -50,4 +51,12 @@ for acct_type in acct_types:
                 orderParams = dict(order_qty=kwantiteh, buy_sell=aenums.TT_BUY, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif="GTD", srs=contract, exchange_clearing_account=custDefaults.exchange_clearing_account, clearing_mbr=giveup_field_val, exchange_sub_account=fft2_field_val, free_text=fft3_field_val, acct_type=getattr(aenums, acct_type))
                 newOrder = TTAPIOrder()
                 newOrder.setFields(**orderParams)
+                time.sleep(0.5)
                 orderSession0.send(newOrder)
+
+
+    #             break
+    #         break
+    #     break
+    # break
+
