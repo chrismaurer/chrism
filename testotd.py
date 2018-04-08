@@ -29,24 +29,25 @@ order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "trading_capacity": "order_capacity",
             "wce_house": "wce_house"}
 
-fix_order_type = {"35=D": "ExecutionReport",
+fix_order_type = {"35=D": "NewOrderSingle",
                   "35=F": "OrderCancelRequest",
-                  "35=G": "OrderCancelReplaceRequest"}
+                  "35=G": "OrderCancelReplaceRequest",
+                  "35=8": "ExecutionReport"}
 
-fix_tags = {"114=": "Authorized Group ID",
-            "115=": "PARTY_ROLE_EXECUTING_FIRM",
-            "439=": "PARTY_ROLE_CLEARING_FIRM", #Clearing Firm ID, NYBOT House Number, WCE House Number
-            "440=": "PARTY_ROLE_CLEARING_ACCOUNT",
-            "9195=": "PARTY_ROLE_ACCOUNT_CODE",
-            "9700=": "order_origination",
-            "9701=": "order_capacity",
-            "9702=": "ORDER_ATTRIBUTE_TYPE_LIQUIDITY_PROVISION_ACTIVITY_ORDER",
-            "9703=": "ORDER_ATTRIBUTE_TYPE_RISK_REDUCTION_ORDER",
-            "9704=": "PARTY_ROLE_INVESTMENT_DECISION_MAKER",
-            "9705=": "PARTY_ROLE_EXECUTING_TRADER",
-            "9706=": "PARTY_ROLE_CLIENT_ID",
-            "9707=": "Mifid Id",
-            "9208=": "Cti"}
+fix_tags = {"114": "Authorized Group ID",
+            "115": "PARTY_ROLE_EXECUTING_FIRM",
+            "439": "PARTY_ROLE_CLEARING_FIRM", #Clearing Firm ID, NYBOT House Number, WCE House Number
+            "440": "PARTY_ROLE_CLEARING_ACCOUNT",
+            "9195": "PARTY_ROLE_ACCOUNT_CODE",
+            "9700": "order_origination",
+            "9701": "order_capacity",
+            "9702": "ORDER_ATTRIBUTE_TYPE_LIQUIDITY_PROVISION_ACTIVITY_ORDER",
+            "9703": "ORDER_ATTRIBUTE_TYPE_RISK_REDUCTION_ORDER",
+            "9704": "PARTY_ROLE_INVESTMENT_DECISION_MAKER",
+            "9705": "PARTY_ROLE_EXECUTING_TRADER",
+            "9706": "PARTY_ROLE_CLIENT_ID",
+            "9707": "Mifid Id",
+            "9208": "Cti"}
 
 
 def optmenu():
@@ -133,11 +134,13 @@ def parse_log_message(log_data):
 
 def parse_fix_message(line):
 
+    if "=" not in line[-1]:
+        line.pop(-1)
     log_message_dict = {}
     verification_list = []
-    log_msg_type = fix_order_type[line[2]]
+    log_msg_type = "FIX_" + fix_order_type[line[2]]
     # u = binascii.hexlify(uuid.uuid4().bytes)
-    log_message_dict = line[2:]
+    log_message_dict = {k: v for k, v in (x.split('=') for x in line)}
     # log_message_dict["order"] = line.split("\x01")
 
     return [log_msg_type, log_message_dict]
@@ -172,8 +175,11 @@ def verify_otd_data(order_id):
 
     verification_dict = {}
     verify_data_list = []
+    fix = False
     er_counter = 0
     cr_counter = 0
+    fixer_counter = 0
+    fixcr_counter = 0
 
     logfile = open(oc_log, 'r')
     for line in logfile.readlines():
@@ -181,28 +187,58 @@ def verify_otd_data(order_id):
             verification_list = []
             log_message = parse_logfile_line(line)
             if "FIX" in str(log_message):
+                fix = True
                 verification = parse_fix_message(log_message)
             else:
                 verification = parse_log_message(log_message)
 
             # Verify log message
-            log_message_type = verification[0]
-            if verification[0] == "ExecutionReport":
-                er_counter += 1
-                log_message_type = '-'.join([verification[0], str(er_counter)])
-            elif verification[0] == "OrderCancelReplaceRequest":
-                cr_counter += 1
-                log_message_type = '-'.join([verification[0], str(cr_counter)])
+            if "ExecutionReport" in verification[0]:
+                if fix:
+                    fixer_counter += 1
+                    log_message_type = '-'.join([verification[0], str(fixer_counter)])
+                else:
+                    er_counter += 1
+                    log_message_type = '-'.join([verification[0], str(er_counter)])
+            elif "OrderCancelReplaceRequest" in verification[0]:
+                if fix:
+                    fixcr_counter += 1
+                    log_message_type = '-'.join([verification[0], str(fixcr_counter)])
+                else:
+                    cr_counter += 1
+                    log_message_type = '-'.join([verification[0], str(cr_counter)])
             else:
                 log_message_type = verification[0]
             print "\n" + "#" * 20
             print log_message_type
             print "#" * 20 + "\n"
-            for element in verification[1].iteritems():
-                for k, v in order_tags.iteritems():
-                    if k in str(element) or v in str(element):
+
+            if fix:
+                # Translate FIX Tags into TTUS Order Tags
+                for k, v in verification[1].iteritems():
+                    if k in fix_tags.keys():
+                        verification[1][fix_tags[k]] = verification[1].pop(k)
+
+                # Translate booleans in to Yes, No
+                for k, v in verification[1].iteritems():
+                    if "ORDER_ATTRIBUTE" in k:
+                        if verification[1][k] == "0":
+                            verification[1][k] = "No"
+                        if verification[1][k] == "1":
+                            verification[1][k] = "Yes"
+
+                for k, v in verification[1].iteritems():
+                    if k in fix_tags.values():
+                        element = {k: v}
                         print element
                         verification_list.append(element)
+            else:
+                for element in verification[1].iteritems():
+                    for k, v in order_tags.iteritems():
+                        if k in str(element) or v in str(element):
+                            print element
+                            verification_list.append(element)
+
             verification_list.sort()
             verification_dict[log_message_type] = verification_list
             verify_data_list.append(log_message_type)
