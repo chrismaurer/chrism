@@ -1,7 +1,6 @@
 __author__ = 'cmaurer'
 
 import argparse
-import uuid , binascii
 
 oc_log = r'/Users/cmaurer/testlog.log'
 # oc_log = r'/var/log/debesys/OC_hkex.log'
@@ -13,10 +12,11 @@ order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "client_id": "PARTY_ROLE_CLIENT_ID",
             "commodity_derivative_indicator": "ORDER_ATTRIBUTE_TYPE_RISK_REDUCTION_ORDER",
             "cti": "CTI Code",
-            "desk": "Authorized Group ID",
+            "desk": "PARTY_ROLE_DESK_ID",
             "direct_electronic_access": "order_origination",
             "exchange_account": "Exchange Account",
             "execution_decision": "PARTY_ROLE_EXECUTING_TRADER",
+            "giveup": "PARTY_ROLE_GIVEUP_CLEARING_FIRM",
             "investment_decision": "PARTY_ROLE_INVESTMENT_DECISION_MAKER",
             "liquidity_provision": "ORDER_ATTRIBUTE_TYPE_LIQUIDITY_PROVISION_ACTIVITY_ORDER",
             "mifid_id": "PARTY_ROLE_COMPOSITE_MIFID_ID",
@@ -34,7 +34,7 @@ fix_order_type = {"35=D": "NewOrderSingle",
                   "35=G": "OrderCancelReplaceRequest",
                   "35=8": "ExecutionReport"}
 
-fix_tags = {"114": "Authorized Group ID",
+fix_tags = {"114": "PARTY_ROLE_DESK_ID",
             "115": "PARTY_ROLE_EXECUTING_FIRM",
             "439": "PARTY_ROLE_CLEARING_FIRM", #Clearing Firm ID, NYBOT House Number, WCE House Number
             "440": "PARTY_ROLE_CLEARING_ACCOUNT",
@@ -54,9 +54,10 @@ def optmenu():
 
     parser = argparse.ArgumentParser(description='Get order number input from user.')
     parser.add_argument('-o', action='store', metavar='order_id', help='enter order_id for analysis.', type=str)
+    # parser.add_argument('-v', action='store', metavar='verbose', help='print full log message.', type=str)
     order_id = parser.parse_args()
 
-    return order_id.o
+    return [order_id.o, ]#, order_id.v
 
 
 def parse_log_message(log_data):
@@ -100,6 +101,8 @@ def parse_log_message(log_data):
         else:
             message_list.append(msg)
 
+    if "\\n" in message_list[-1]:
+        message_list.pop(-1)
 
     for message_list_item in message_list:
         message_list_item = message_list_item.replace('\"', '')
@@ -134,14 +137,14 @@ def parse_log_message(log_data):
 
 def parse_fix_message(line):
 
+    log_message_dict = {}
     if "=" not in line[-1]:
         line.pop(-1)
-    log_message_dict = {}
-    verification_list = []
     log_msg_type = "FIX_" + fix_order_type[line[2]]
-    # u = binascii.hexlify(uuid.uuid4().bytes)
-    log_message_dict = {k: v for k, v in (x.split('=') for x in line)}
-    # log_message_dict["order"] = line.split("\x01")
+    # log_message_dict = {k: v for k, v in (x.split('=') for x in line)}
+    for x in line[3:]:
+        keyval = x.split('=')
+        log_message_dict[keyval[0]] = keyval[1]
 
     return [log_msg_type, log_message_dict]
 
@@ -149,7 +152,7 @@ def parse_fix_message(line):
 
 def parse_logfile_line(line):
 
-    if "FIX" in line:
+    if "8=FIX" in line:
         log_message = line.encode("ascii").split("\x01")
     else:
         line_list = line.split(" | ")[5:]
@@ -168,11 +171,15 @@ def parse_logfile_line(line):
             log_message = [line_list[0], line_list[1].lstrip(' ')]
             log_message.extend(line_list[2].split(" "))
 
+        if "\n" in log_message[-1]:
+            log_message.append(log_message.pop(-1).rstrip("\n"))
+
     return log_message
 
 
 def verify_otd_data(order_id):
 
+    verbose = True
     verification_dict = {}
     verify_data_list = []
     fix = False
@@ -183,13 +190,18 @@ def verify_otd_data(order_id):
 
     logfile = open(oc_log, 'r')
     for line in logfile.readlines():
-        if order_id in line:
+        if any(ordid in line for ordid in order_id) and "om_order_responder_inl.h" not in line and not \
+                (line.split(" | ")[5]).startswith(" sender_sub_id="):
             verification_list = []
+            line = line.rstrip(r"\n")
             log_message = parse_logfile_line(line)
-            if "FIX" in str(log_message):
+            if "8=FIX" in str(log_message):
                 fix = True
                 verification = parse_fix_message(log_message)
             else:
+                if "secondary_order_id" in line:
+                    exch_order_num = ((line.split("secondary_order_id=")[0]).split("=")[-1]).rstrip(" | ")
+                    order_id.append(exch_order_num)
                 verification = parse_log_message(log_message)
 
             # Verify log message
@@ -219,7 +231,7 @@ def verify_otd_data(order_id):
                     if k in fix_tags.keys():
                         verification[1][fix_tags[k]] = verification[1].pop(k)
 
-                # Translate booleans in to Yes, No
+                # Translate booleans to human readable
                 for k, v in verification[1].iteritems():
                     if "ORDER_ATTRIBUTE" in k:
                         if verification[1][k] == "0":
@@ -239,6 +251,9 @@ def verify_otd_data(order_id):
                             print element
                             verification_list.append(element)
 
+            if verbose:
+                print "\n\nLINE:", line
+
             verification_list.sort()
             verification_dict[log_message_type] = verification_list
             verify_data_list.append(log_message_type)
@@ -251,10 +266,7 @@ def verify_otd_data(order_id):
                 if item not in verification_dict[verify_data_list[i]]:
                     print "{0} contains: {1}".format(verify_data_list[i+1], item)
 
-
+order_id = ["12f8d8d8-bf46-4a99-9f1e-39f36a14cfa4", ]
 # order_id = optmenu()
-# order_id = "65c581a7-96d4-43af-a2a3-dae163a6c56d"
-# parse_otd_data(order_id)
-order_id="224005882790"
 verify_otd_data(order_id)
 #"65c581a7-96d4-43af-a2a3-dae163a6c56d"
