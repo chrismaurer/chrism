@@ -12,7 +12,7 @@ priceSrv = Manager().getPriceServer()
 prev_trading_status = None
 curr_trading_status = None
 pricey = None
-products = priceSession.getProducts(prodName='NK225', prodType=aenums.TT_PROD_FUTURE)
+products = priceSession.getProducts(prodName='TOPIX', prodType=aenums.TT_PROD_FUTURE)
 run_now = True
 while run_now is True:
     prod = products[0]

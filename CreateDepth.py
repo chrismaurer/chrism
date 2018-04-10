@@ -10,7 +10,7 @@ orderSession = Manager().getOrderFillSession()
 allCustDefaults = Manager().getCustomers()
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-products = priceSession.getProducts()#prodName='MOTHE')
+products = priceSession.getProducts()#prodName='MOTHE', prodType=aenums.TT_PROD_FSPREAD)
 custDefaults = allCustDefaults[0]
 for product in products:
     pricey = None
@@ -29,12 +29,12 @@ for product in products:
                     found_price = price.value
                 if "SRS_STATUS" in str(enum):
                     trading_status = price.value
-            pricey = 300 if found_price is None and "SGX" in priceSession.exchangeName else found_price
+            pricey = 100 if found_price is None and "HKEx" in priceSession.exchangeName else found_price
             if pricey is not None and trading_status != 6:
                 for side in [aenums.TT_SELL, aenums.TT_BUY]:
                     depth_level = 1
-                    pricey = 300 if found_price is None and "SGX" in priceSession.exchangeName else found_price
-                    while depth_level <= 3:
+                    pricey = 100 if found_price is None and "HKEx" in priceSession.exchangeName else found_price
+                    while depth_level <= 20:
                         if "SELL" in str(side):
                             pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
                         else:
@@ -46,3 +46,4 @@ for product in products:
                         depth_level += 1
             break
     break
+
