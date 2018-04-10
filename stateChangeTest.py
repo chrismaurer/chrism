@@ -8,10 +8,10 @@ orderSession = Manager().getOrderFillSession()
 allCustDefaults = Manager().getCustomers()
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-products = priceSession.getProducts(prodName='ZCOA')
+products = priceSession.getProducts(prodName='NK225', prodType=aenums.TT_PROD_FUTURE)
 product = products[0]
 contracts = priceSession.getContracts(product)#, contractKeys="FUT_NK225M_1704")
-contract = contracts[1]
+contract = contracts[2]
 custDefaults = allCustDefaults[-1]
 run_now = True
 prev_trading_status = None
