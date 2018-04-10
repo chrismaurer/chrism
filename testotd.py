@@ -2,8 +2,7 @@ __author__ = 'cmaurer'
 
 import argparse
 
-oc_log = r'/Users/cmaurer/testlog.log'
-# oc_log = r'/var/log/debesys/OC_hkex.log'
+oc_log = r'/var/log/debesys/OC_hkex.log'
 
 order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "clearing_account": "PARTY_ROLE_CLEARING_ACCOUNT",
@@ -52,12 +51,11 @@ fix_tags = {"114": "PARTY_ROLE_DESK_ID",
 
 def optmenu():
 
-    parser = argparse.ArgumentParser(description='Get order number input from user.')
-    parser.add_argument('-o', action='store', metavar='order_id', help='enter order_id for analysis.', type=str)
-    # parser.add_argument('-v', action='store', metavar='verbose', help='print full log message.', type=str)
+    parser = argparse.ArgumentParser(description='Test Order Tag Defaults using order number input from user.')
+    parser.add_argument('-o', action='store', metavar='--order_id', help='order_id to be analysed.', type=str)
     order_id = parser.parse_args()
 
-    return [order_id.o, ]#, order_id.v
+    return [order_id.o, ]
 
 
 def parse_log_message(log_data):
@@ -318,7 +316,5 @@ def verify_otd_data(order_id):
                         if item not in verification_dict[verify_data_list[i][0]]:
                             print "{0} contains: {1}".format(verify_data_list[i+1][1], item)
 
-order_id = ["12f8d8d8-bf46-4a99-9f1e-39f36a14cfa4", ]
-# order_id = optmenu()
+order_id = optmenu()
 verify_otd_data(order_id)
-#"65c581a7-96d4-43af-a2a3-dae163a6c56d"
