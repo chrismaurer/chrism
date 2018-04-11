@@ -1,8 +1,11 @@
 __author__ = 'cmaurer'
 
 import argparse
+import os
 
-oc_log = r'/var/log/debesys/OC_hkex.log'
+for logfile in os.listdir(r"/var/log/debesys/"):
+    if logfile.startswith("OC_") and logfile.endswith(".log"):
+            oc_log = r"/var/log/debesys/" + logfile
 
 order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "clearing_account": "PARTY_ROLE_CLEARING_ACCOUNT",
@@ -151,6 +154,8 @@ def parse_fix_message(line):
         log_message_dict[keyval[0]] = keyval[1]
     exec_type = " "
 
+    exec_type = log_msg_type
+
     return log_msg_type, log_message_dict, exec_type
 
 
@@ -185,6 +190,7 @@ def parse_logfile_line(line):
 def verify_otd_data(order_id):
 
     verbose = True
+    validate_fix = False
     verification_dict = {}
     verify_data_list = []
     fix = False
@@ -201,6 +207,8 @@ def verify_otd_data(order_id):
             line = line.rstrip(r"\n")
             log_message = parse_logfile_line(line)
             if "8=FIX" in str(log_message):
+                if not validate_fix:
+                    continue
                 fix = True
                 log_msg_type, log_message_dict, exec_type = parse_fix_message(log_message)
             else:
