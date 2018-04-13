@@ -1,9 +1,11 @@
 __author__ = 'cmaurer'
 
 import argparse
+import os
 
-oc_log = r'/Users/cmaurer/testlog.log'
-# oc_log = r'/var/log/debesys/OC_hkex.log'
+for logfile in os.listdir(r"/var/log/debesys/"):
+    if logfile.startswith("OC_") and logfile.endswith(".log"):
+            oc_log = r"/var/log/debesys/" + logfile
 
 order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "clearing_account": "PARTY_ROLE_CLEARING_ACCOUNT",
@@ -52,12 +54,11 @@ fix_tags = {"114": "PARTY_ROLE_DESK_ID",
 
 def optmenu():
 
-    parser = argparse.ArgumentParser(description='Get order number input from user.')
-    parser.add_argument('-o', action='store', metavar='order_id', help='enter order_id for analysis.', type=str)
-    # parser.add_argument('-v', action='store', metavar='verbose', help='print full log message.', type=str)
+    parser = argparse.ArgumentParser(description='Test Order Tag Defaults using order number input from user.')
+    parser.add_argument('-o', action='store', metavar='--order_id', help='order_id to be analysed.', type=str)
     order_id = parser.parse_args()
 
-    return [order_id.o, ]#, order_id.v
+    return [order_id.o, ]
 
 
 def parse_log_message(log_data):
@@ -68,7 +69,7 @@ def parse_log_message(log_data):
     message_list = []
     bracketed_message_list = []
     bracketed_message = False
-    exec_type = " "
+    exec_type = None
 
     concatenating = False
     for msg in logmsg:
@@ -136,6 +137,8 @@ def parse_log_message(log_data):
         else:
             log_message_dict[message_list_item.split("=")[0].replace('\"', '')] = message_list_item.split("=")[1].replace('\"', '')
 
+    exec_type = log_msg_type if exec_type == None else exec_type
+
     return log_msg_type, log_message_dict, exec_type
 
 
@@ -150,6 +153,8 @@ def parse_fix_message(line):
         keyval = x.split('=')
         log_message_dict[keyval[0]] = keyval[1]
     exec_type = " "
+
+    exec_type = log_msg_type
 
     return log_msg_type, log_message_dict, exec_type
 
@@ -185,6 +190,7 @@ def parse_logfile_line(line):
 def verify_otd_data(order_id):
 
     verbose = True
+    validate_fix = False
     verification_dict = {}
     verify_data_list = []
     fix = False
@@ -201,6 +207,8 @@ def verify_otd_data(order_id):
             line = line.rstrip(r"\n")
             log_message = parse_logfile_line(line)
             if "8=FIX" in str(log_message):
+                if not validate_fix:
+                    continue
                 fix = True
                 log_msg_type, log_message_dict, exec_type = parse_fix_message(log_message)
             else:
@@ -227,7 +235,7 @@ def verify_otd_data(order_id):
             else:
                 log_message_type = log_msg_type
             print "\n" + "#" * 20
-            print log_message_type
+            print log_message_type, "-", exec_type
             print "#" * 20 + "\n"
 
             if fix:
@@ -261,33 +269,60 @@ def verify_otd_data(order_id):
 
             verification_list.sort()
             verification_dict[log_message_type] = verification_list
-            verify_data_list.append(log_message_type)
+            verify_data_list.append([log_message_type, exec_type])
 
     # Verify messages
     print "\n\n", "#"*30, "\nVerification Report:\n", "#"*30, "\n"
     for i in range(0, len(verify_data_list)-1):
-        if "NewOrderSingle" in verify_data_list[i] or "OrderCancelReplaceRequest" in verify_data_list[i]:
-            print "{0}\nComparing {1} with {2}\n".format("-"*56, verify_data_list[i], verify_data_list[i+1])
-            for item in verification_dict[verify_data_list[i]]:
-                if item not in verification_dict[verify_data_list[i+1]]:
-                    print "{0} {1} was not found in {2}".format(verify_data_list[i], item, verify_data_list[i+1])
+        if "NewOrderSingle" in verify_data_list[i][0] or "OrderCancelReplaceRequest" in verify_data_list[i][0]:
+            d = 1
+            if "OrderCancelReplaceRequest" in verify_data_list[i][0]:
+                while "NEW" in verify_data_list[i+d][1]:
+                    d += 1
+            print "{0}\nComparing {1} with {2}\n".format("-"*56, verify_data_list[i][1], verify_data_list[i+d][1])
+            for m in [i, i+d]:
+                if len(verification_dict[verify_data_list[m][0]]) == 0:
+                    print "{0} contains no order tags.".format(verify_data_list[m][1])
+                    break
             else:
-                "{0}\nAll order tags from {1} were found in {2}\n".format("-"*56, verify_data_list[i], verify_data_list[i+1])
-        elif "NewOrderSingle" in verify_data_list[i+1] or "OrderCancelReplaceRequest" in verify_data_list[i+1]:
-            print "{0}\nComparing {1} with {2}\n".format("-"*56, verify_data_list[i+1], verify_data_list[i])
-            for item in verification_dict[verify_data_list[i+1]]:
-                if item not in verification_dict[verify_data_list[i]]:
-                    print "{0} {1} was not found in {2}".format(verify_data_list[i+1], item, verify_data_list[i])
+                for item in verification_dict[verify_data_list[i][0]]:
+                    if item not in verification_dict[verify_data_list[i+d][0]]:
+                        print "{0} {1} was not found in {2}".format(verify_data_list[i][1], item,
+                                                                    verify_data_list[i+d][1])
+                if not item not in verification_dict[verify_data_list[i+d][0]]:
+                    print "All order tags from {0} were found in {1}\n".format(verify_data_list[i][0],
+                                                                               verify_data_list[i+d][0])
+        elif any(type in verify_data_list[i+1][0] for type in ["NewOrderSingle", "OrderCancelReplaceRequest",
+                                                               "OrderCancelRequest"]):
+            if "OrderCancelReplaceRequest" in verify_data_list[i+1][0] and "NEW" in verify_data_list[i][1]:
+                pass
             else:
-                "{0}\nAll order tags from {1} were found in {2}\n".format("-"*56, verify_data_list[i+1], verify_data_list[i])
+                print "{0}\nComparing {1} with {2}\n".format("-"*56, verify_data_list[i+1][1], verify_data_list[i][1])
+                for m in [i, i+1]:
+                    if len(verification_dict[verify_data_list[m][0]]) == 0:
+                        print "{0} contains no order tags.".format(verify_data_list[m][1])
+                        break
+                else:
+                    for item in verification_dict[verify_data_list[i+1][0]]:
+                        if item not in verification_dict[verify_data_list[i][0]]:
+                            print "{0} {1} was not found in {2}".format(verify_data_list[i+1][1], item,
+                                                                        verify_data_list[i][1])
+                    if not item not in verification_dict[verify_data_list[i][0]]:
+                        print "All order tags from {0} were found in {1}\n".format(verify_data_list[i+1][1],
+                                                                                   verify_data_list[i][1])
         else:
-            print "{0}\n{1} and {2} match: {3}\n".format("-"*56, verify_data_list[i], verify_data_list[i+1], verification_dict[verify_data_list[i]] == verification_dict[verify_data_list[i+1]])
-            if not verification_dict[verify_data_list[i]] == verification_dict[verify_data_list[i+1]]:
-                for item in verification_dict[verify_data_list[i+1]]:
-                    if item not in verification_dict[verify_data_list[i]]:
-                        print "{0} contains: {1}".format(verify_data_list[i+1], item)
+            print "{0}\n{1} and {2} match: {3}\n".format(
+                "-"*56, verify_data_list[i][1], verify_data_list[i+1][1],
+                verification_dict[verify_data_list[i][0]] == verification_dict[verify_data_list[i+1][0]])
+            if not verification_dict[verify_data_list[i][0]] == verification_dict[verify_data_list[i+1][0]]:
+                for m in [i, i+1]:
+                    if len(verification_dict[verify_data_list[m][0]]) == 0:
+                        print "{0} contains no order tags.".format(verify_data_list[m][1])
+                        break
+                else:
+                    for item in verification_dict[verify_data_list[i+1][0]]:
+                        if item not in verification_dict[verify_data_list[i][0]]:
+                            print "{0} contains: {1}".format(verify_data_list[i+1][1], item)
 
-order_id = ["12f8d8d8-bf46-4a99-9f1e-39f36a14cfa4", ]
-# order_id = optmenu()
+order_id = optmenu()
 verify_otd_data(order_id)
-#"65c581a7-96d4-43af-a2a3-dae163a6c56d"
