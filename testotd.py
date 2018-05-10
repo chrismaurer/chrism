@@ -335,18 +335,19 @@ def verify_otd_data(order_id):
                     for item in verification_dict[verify_data_list[exec_new_idx][0]]:
                         if item not in verification_dict[verify_data_list[i][0]]:
                             print "{0} contains: {1}".format(verify_data_list[exec_new_idx], item)
-            if not verification_dict[verify_data_list[i][0]] == verification_dict[verify_data_list[i+1][0]]:
-                for m in [i, i+1]:
-                    if len(verification_dict[verify_data_list[m][0]]) == 0:
-                        print "{0} contains no order tags.".format(verify_data_list[m][0])
-                        break
-                else:
-                    for item in verification_dict[verify_data_list[i+1][0]]:
-                        if item not in verification_dict[verify_data_list[i][0]]:
-                            print "{0} contains: {1}".format(verify_data_list[i+1], item)
-                    for item in verification_dict[verify_data_list[i][0]]:
-                        if item not in verification_dict[verify_data_list[i+1][0]]:
-                            print "{0} contains: {1}".format(verify_data_list[i], item)
+            else:
+                if not verification_dict[verify_data_list[i][0]] == verification_dict[verify_data_list[i+1][0]]:
+                    for m in [i, i+1]:
+                        if len(verification_dict[verify_data_list[m][0]]) == 0:
+                            print "{0} contains no order tags.".format(verify_data_list[m][0])
+                            break
+                    else:
+                        for item in verification_dict[verify_data_list[i+1][0]]:
+                            if item not in verification_dict[verify_data_list[i][0]]:
+                                print "{0} contains: {1}".format(verify_data_list[i+1], item)
+                        for item in verification_dict[verify_data_list[i][0]]:
+                            if item not in verification_dict[verify_data_list[i+1][0]]:
+                                print "{0} contains: {1}".format(verify_data_list[i], item)
 
 order_id = optmenu()
 # order_id = ["12f8d8d8-bf46-4a99-9f1e-39f36a14cfa4", ]
