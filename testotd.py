@@ -379,6 +379,9 @@ def verify_otd_data(order_id):
             else:
                 index = 1
                 while True:
+                    if any("FIX_ExecutionReport" in validation_msg for validation_msg in [verify_data_list[i][1], verify_data_list[i+index][1]])\
+                            and not all("FIX_" in validation_msg for validation_msg in [verify_data_list[i][1], verify_data_list[i+index][1]]):
+                        break
                     print "{0}\n{1} and {2} match: {3}\n".format(
                         "-"*56, verify_data_list[i][1], verify_data_list[i+index][1],
                         verification_dict[verify_data_list[i][0]] == verification_dict[verify_data_list[i+index][0]])
