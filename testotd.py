@@ -2,16 +2,12 @@ __author__ = 'cmaurer'
 
 import argparse
 import os
-import copy
 
 # oc_log = r"/Users/cmaurer/testlog.log"
 
 for logfile in os.listdir(r"/var/log/debesys/"):
     if logfile.startswith("OC_") and logfile.endswith(".log"):
         oc_log = r"/var/log/debesys/" + logfile
-
-verification_dict = {}
-verify_data_list = []
 
 order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "account": "PARTY_ROLE_CUSTOMER_ACCOUNT",
@@ -401,6 +397,9 @@ def verify_otd_data(order_id):
             else:
                 index = 1
                 while True:
+                    if any("FIX_ExecutionReport" in validation_msg for validation_msg in [verify_data_list[i][1], verify_data_list[i+index][1]])\
+                            and not all("FIX_" in validation_msg for validation_msg in [verify_data_list[i][1], verify_data_list[i+index][1]]):
+                        break
                     print "{0}\n{1} and {2} match: {3}\n".format(
                         "-"*56, verify_data_list[i][1], verify_data_list[i+index][1],
                         verification_dict[verify_data_list[i][0]] == verification_dict[verify_data_list[i+index][0]])
@@ -424,5 +423,5 @@ def verify_otd_data(order_id):
     logfile.close()
 
 order_id = optmenu()
-# order_id = ["9e499de6-8a22-4f3d-92bc-e6c2f68cb663", ]
+# order_id = ["12f8d8d8-bf46-4a99-9f1e-39f36a14cfa4", ]
 verify_otd_data(order_id)
