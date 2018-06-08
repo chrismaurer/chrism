@@ -2,12 +2,17 @@ __author__ = 'cmaurer'
 
 import argparse
 import os
+import copy
 
 # oc_log = r"/Users/cmaurer/testlog.log"
 
 for logfile in os.listdir(r"/var/log/debesys/"):
     if logfile.startswith("OC_") and logfile.endswith(".log"):
         oc_log = r"/var/log/debesys/" + logfile
+
+verification_dict = {}
+verify_data_list = []
+
 
 order_tags={"account_code": "PARTY_ROLE_ACCOUNT_CODE",
             "account": "PARTY_ROLE_CUSTOMER_ACCOUNT",
@@ -243,6 +248,7 @@ def validate_messages(line, verbose=False, validate_fix=False):
     else:
         if "secondary_order_id" in line:
             exch_order_num = ((line.split("secondary_order_id=")[0]).split("=")[-1]).rstrip(" | ")
+            exch_order_num = None if exch_order_num == '' else exch_order_num
             order_id.append(exch_order_num)
         log_msg_type, log_message_dict, exec_type = parse_log_message(log_message)
 
@@ -339,9 +345,8 @@ def verify_otd_data(order_id):
             if len(line.split(" | ")[5].split(" ")) > 1:
                 continue
             if all(fix_nos_element in line for fix_nos_element in ["Send:", "8=FIX"]):
-                for order_add_tag in fix_order_type.iterkeys():
-                    if order_add_tag in line:
-                        fix_nos = copy.copy(line)
+                if any(fix_nos_element in line for fix_nos_element in ["35=D", "35=s"]):
+                    fix_nos = copy.copy(line)
             if any(ordid in line for ordid in order_id):
                 if not found_fix_nos and fix_nos is not None:
                     # print "fix_nos:\n\n", fix_nos
@@ -423,5 +428,5 @@ def verify_otd_data(order_id):
     logfile.close()
 
 order_id = optmenu()
-# order_id = ["12f8d8d8-bf46-4a99-9f1e-39f36a14cfa4", ]
+# order_id = ["c10f8b2d-068a-4d18-ad9f-741b8078858a", ]
 verify_otd_data(order_id)
