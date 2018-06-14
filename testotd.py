@@ -70,6 +70,13 @@ class testotd():
                         "sAuthorizedTrader": "sAuthorizedTrader"}
                         # "9207": "PARTY_ROLE_ORDER_ENTRY_OPERATOR_ID",
 
+        self.order_origination_mapping = {"0": "ORDER_ORIGINATION_OTHER_NON_DEA",
+                                          "1": "ORDER_ORIGINATION_FROM_DIRECT_ACCESS_OR_SPONSORED_ACCESS_CUSTOMER"}
+
+        self.order_capacity_mapping = {"0": "ORDER_CAPACITY_PRINCIPAL",
+                                       "1": "ORDER_CAPACITY_RISKLESS_PRINCIPAL",
+                                       "2": "ORDER_CAPACITY_AGENCY"}
+
     def optmenu(self):
     
         parser = argparse.ArgumentParser(description='Test Order Tag Defaults using order_id input from user.')
@@ -128,7 +135,9 @@ class testotd():
     
             if "exec_type" in msg:
                 exec_type = msg.split("=")[-1]
-    
+            elif "trans_type" in msg:
+                exec_type = msg.split("=")[-1]
+
         if "\\n" in message_list[-1]:
             message_list.pop(-1)
     
@@ -223,13 +232,14 @@ class testotd():
 
         """Prepare messages for verification"""
 
-        fix = False
         er_counter = 0
         cr_counter = 0
+        tcr_counter = 0
         fixer_counter = 0
         fixcr_counter = 0
 
         for line in order_history:
+            fix = False
             line = line.rstrip(r"\n")
 
             verification_dict = {}
@@ -270,6 +280,9 @@ class testotd():
                 else:
                     cr_counter += 1
                     log_message_type = '-'.join([log_msg_type, str(cr_counter)])
+            elif "TradeCaptureReport" in log_msg_type:
+                tcr_counter += 1
+                log_message_type = '-'.join([log_msg_type, str(tcr_counter)])
             else:
                 log_message_type = log_msg_type
 
@@ -291,17 +304,9 @@ class testotd():
                         if log_message_dict[k] == "1":
                             log_message_dict[k] = "Yes"
                     elif "order_capacity" in k:
-                        if log_message_dict[k] == "0":
-                            log_message_dict[k] = "ORDER_CAPACITY_DEAL"
-                        if log_message_dict[k] == "1":
-                            log_message_dict[k] = "ORDER_CAPACITY_MATCH"
-                        if log_message_dict[k] == "2":
-                            log_message_dict[k] = "ORDER_CAPACITY_AGENCY"
+                        log_message_dict[k] = self.order_capacity_mapping[log_message_dict[k]]
                     elif "order_origination" in k:
-                        if log_message_dict[k] == "0":
-                            log_message_dict[k] = "ORDER_ORIGINATION_OTHER_NON_DEA"
-                        if log_message_dict[k] == "1":
-                            log_message_dict[k] = "ORDER_ORIGINATION_OTHER_NON_DEA"
+                        log_message_dict[k] = self.order_origination_mapping[log_message_dict[k]]
                     elif "PARTY_ROLE_DESK_ID" in k:
                         log_message_dict[k] = log_message_dict[k].split("|")[-1]
 
@@ -323,7 +328,7 @@ class testotd():
 
             if verbose:
                 if fix:
-                    print "\n\nLINE:", " ".join(line.encode("ascii").split("\x01"))
+                    print "\n\nLINE:", "  ".join(line.encode("ascii").split("\x01"))
                 else:
                     print "\n\nLINE:", line
 
@@ -366,13 +371,14 @@ class testotd():
                                 found_fix_nos = True
                         order_history.append(line)
 
-                        if "secondary_cl_ord_id" in line:
-                            exch_order_num = ((line.split("secondary_cl_ord_id=")[1]).split(" ")[0]).replace('"', '')
-                            exch_order_num = None if exch_order_num == '' else exch_order_num
-                            if exch_order_num not in order_id:
-                                order_id.append(exch_order_num)
+                        for exch_order_number_field in ["secondary_cl_ord_id=", "secondary_report_id="]:
+                            if exch_order_number_field in line:
+                                exch_order_num = ((line.split(exch_order_number_field)[1]).split(" ")[0]).replace('"', '')
+                                exch_order_num = None if exch_order_num == '' else exch_order_num
+                                if exch_order_num not in order_id:
+                                    order_id.append(exch_order_num)
 
-                        if "DELETED" in line:
+                        if "ORD_STATUS_CANCELED" in line:
                             break
 
             except:
@@ -387,41 +393,53 @@ class testotd():
 
         """Verify all log messages"""
 
-        comparison_pairs = ["new", "fix", "executionreport", "replace"]
-
         print "\n\n", "#"*30, "\nVerification Report:\n", "#"*30, "\n"
 
         for i in range(0, len(self.verify_data_list)-1):
+            compare_count = 1
+            loop_compare = 1
             before = self.verify_data_list[i]
-            after = self.verify_data_list[i+1]
-            list_comparison = before.values() == after.values()
-            for comparison_pair in comparison_pairs:
-                if comparison_pair in str([before.keys()[0][1], after.keys()[0][1]]).lower() and \
-                        all(comparison_pair in message_type for message_type in [str(before.keys()[0][1]).lower(),
-                                                                                 str(after.keys()[0][1]).lower()]):
-                    print "\n{0}\n{1} ({2}) and {3} ({4}) match: {5}\n".format("-"*56, before.keys()[0][0],
-                                                                               before.keys()[0][1], after.keys()[0][0],
-                                                                               after.keys()[0][1], list_comparison)
-                    if len(before.values()) == 0:
-                        print "{0} contains no order tags.".format(before.keys()[0][0])
-                        continue
-                    elif len(after.values()) == 0:
-                        print "{0} contains no order tags.".format(after.keys()[0][0])
-                        continue
+            # after = self.verify_data_list[i+1]
+            while loop_compare <= compare_count:
+                after = self.verify_data_list[i+loop_compare]
+                loop_compare += 1
+                self.verify_compare(before, after)
+                if "fix" not in before.keys()[0][1].lower() and "fix" in after.keys()[0][1].lower():
+                    compare_count += 1
 
-                    if len(before.values()) == 0:
-                        print "{0} contains no order tags.".format(before.keys()[0][0])
-                    elif len(after.values()) == 0:
-                        print "{0} contains no order tags.".format(before.keys()[0][0])
-                    else:
-                        for verification_point in before.values()[0]:
-                            if verification_point not in after.values()[0]:
-                                print "{0} {1} was not found in {2}".format(before.keys()[0][1], verification_point,
-                                                                            after.keys()[0][1])
-                        for verification_point in after.values()[0]:
-                            if verification_point not in before.values()[0]:
-                                print "{0} {1} was not found in {2}".format(after.keys()[0][1], verification_point,
-                                                                            before.keys()[0][1])
+    def verify_compare(self, before, after):
+
+        comparison_pairs = ["new", "fix", "executionreport", "replace", "cancel", "tradecapturereport", "handling",
+                            "trade", "suspend"]
+        list_comparison = before.values() == after.values()
+
+        for comparison_pair in comparison_pairs:
+            if comparison_pair in str([before.keys()[0][1], after.keys()[0][1]]).lower() and \
+                    all(comparison_pair in message_type for message_type in [str(before.keys()[0][1]).lower(),
+                                                                             str(after.keys()[0][1]).lower()]):
+                print "\n{0}\n{1} ({2}) and {3} ({4}) match: {5}\n".format("-"*56, before.keys()[0][0],
+                                                                           before.keys()[0][1], after.keys()[0][0],
+                                                                           after.keys()[0][1], list_comparison)
+                if len(before.values()) == 0:
+                    print "{0} contains no order tags.".format(before.keys()[0][0])
+                    continue
+                elif len(after.values()) == 0:
+                    print "{0} contains no order tags.".format(after.keys()[0][0])
+                    continue
+
+                if len(before.values()) == 0:
+                    print "{0} contains no order tags.".format(before.keys()[0][0])
+                elif len(after.values()) == 0:
+                    print "{0} contains no order tags.".format(before.keys()[0][0])
+                else:
+                    for verification_point in before.values()[0]:
+                        if verification_point not in after.values()[0]:
+                            print "{0} {1} was not found in {2}".format(before.keys()[0][1], verification_point,
+                                                                        after.keys()[0][1])
+                    for verification_point in after.values()[0]:
+                        if verification_point not in before.values()[0]:
+                            print "{0} {1} was not found in {2}".format(after.keys()[0][1], verification_point,
+                                                                        before.keys()[0][1])
 
 
 order_id = testotd().optmenu()
