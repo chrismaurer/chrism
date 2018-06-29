@@ -342,7 +342,7 @@ class testotd():
 
         Pass [order_history] to self.validate_messages()"""
 
-        messages_to_ignore = ["CassandraMessageStore", "got working order_id"]
+        messages_to_ignore = ["CassandraMessageStore", "got working order_id", "om_order_responder_inl.h"]
 
         order_history = []
         verbose = True
@@ -411,17 +411,28 @@ class testotd():
             compare_count = 1
             loop_compare = 1
             # after = self.verify_data_list[i+1]
+            if any(skip_validation in str(self.verify_data_list[i].keys()[0][1]).lower() for skip_validation in
+                   ["ordercancelrequest", "ordercancelreplacerequest"]):
+                continue
+            elif "NewOrderCross" not in str(self.verify_data_list) and "trade_report_trans_type_new" in \
+                    str(self.verify_data_list[i].keys()[0][1]).lower():
+                continue
             while loop_compare <= compare_count:
                 before = copy.deepcopy(self.verify_data_list[i])
+                while any(skip_validation in str(self.verify_data_list[i+loop_compare].keys()[0][1]).lower() for
+                          skip_validation in ["ordercancelrequest", "ordercancelreplacerequest"]):
+                    loop_compare += 1
+                if "NewOrderCross" not in str(self.verify_data_list) and "trade_report_trans_type_new" in \
+                        str(self.verify_data_list[i+loop_compare].keys()[0][1]).lower():
+                    loop_compare += 1
+
                 after = copy.deepcopy(self.verify_data_list[i+loop_compare])
                 loop_compare += 1
-                if "ordercancelrequest" in str([before.keys()[0][1], after.keys()[0][1]]).lower():
-                    continue
 
                 # Work-around for false-failures comparing messages that aren't expected to be there
                 # TODO: Clean this up
                 if "newordersingle" in str([before.keys()[0][1], after.keys()[0][1]]).lower() and \
-                                "exec_type_pending_new" in str([before.keys()[0][1], after.keys()[0][1]]).lower():
+                        "exec_type_pending_new" in str([before.keys()[0][1], after.keys()[0][1]]).lower():
                     while "PARTY_ROLE" in str(before.values()[0]):
                         for party_role_message in before.values()[0]:
                             if "PARTY_ROLE" in str(party_role_message):
@@ -445,50 +456,52 @@ class testotd():
                             "trade", "suspend"]
         list_comparison = before.values() == after.values()
 
-        for comparison_pair in comparison_pairs:
-            if (comparison_pair in str([before.keys()[0][1], after.keys()[0][1]]).lower() and
-                    all(comparison_pair in message_type for message_type in [str(before.keys()[0][1]).lower(),
-                                                                             str(after.keys()[0][1]).lower()])) or \
-                    (comparison_pair == "replace" and "suspend" in str(after.keys()[0][1]).lower()):
+        # for comparison_pair in comparison_pairs:
+            # if comparison_pair in str([before.keys()[0][1], after.keys()[0][1]]).lower() or \
+            #                 comparison_pair == "replace" and "suspend" in str(after.keys()[0][1]).lower():
+            # if (comparison_pair in str([before.keys()[0][1], after.keys()[0][1]]).lower() and
+            #         all(comparison_pair in message_type for message_type in [str(before.keys()[0][1]).lower(),
+            #                                                                  str(after.keys()[0][1]).lower()])) or \
+            #         (comparison_pair == "replace" and "suspend" in str(after.keys()[0][1]).lower()):
 
-                print "\n{0}\n{1} ({2}) and {3} ({4}) match: {5}\n".format("-"*56, before.keys()[0][0],
-                                                                           before.keys()[0][1], after.keys()[0][0],
-                                                                           after.keys()[0][1], list_comparison)
-                if len(before.values()) == 0:
-                    print "{0} contains no order tags.".format(before.keys()[0][0])
-                    continue
-                elif len(after.values()) == 0:
-                    print "{0} contains no order tags.".format(after.keys()[0][0])
-                    continue
-                else:
-                    before_acct = None
-                    after_acct = None
-                    for verification_point in before.values()[0]:
-                        if verification_point not in after.values()[0]:
-                            print "{0} {1} was not found in {2}".format(before.keys()[0][1], verification_point,
-                                                                        after.keys()[0][1])
-                            if "account" in verification_point:
-                                for acct in before.values()[0]:
-                                    if "account" in acct:
-                                        before_acct = acct
-                                for acct in after.values()[0]:
-                                    if "account_override" in acct:
-                                        after_acct = acct
+        print "\n{0}\n{1} ({2}) and {3} ({4}) match: {5}\n".format("-"*56, before.keys()[0][0],
+                                                                   before.keys()[0][1], after.keys()[0][0],
+                                                                   after.keys()[0][1], list_comparison)
+        if len(before.values()) == 0:
+            print "{0} contains no order tags.".format(before.keys()[0][0])
+            # continue
+        elif len(after.values()) == 0:
+            print "{0} contains no order tags.".format(after.keys()[0][0])
+            # continue
+        else:
+            before_acct = None
+            after_acct = None
+            for verification_point in before.values()[0]:
+                if verification_point not in after.values()[0]:
+                    print "{0} {1} was not found in {2}".format(before.keys()[0][1], verification_point,
+                                                                after.keys()[0][1])
+                    if "account" in verification_point:
+                        for acct in before.values()[0]:
+                            if "account" in acct:
+                                before_acct = acct
+                        for acct in after.values()[0]:
+                            if "account_override" in acct:
+                                after_acct = acct
 
-                    for verification_point in after.values()[0]:
-                        if verification_point not in before.values()[0]:
-                            print "{0} {1} was not found in {2}".format(after.keys()[0][1], verification_point,
-                                                                        before.keys()[0][1])
-                            if "account" in verification_point:
-                                for acct in after.values()[0]:
-                                    if "account" in acct:
-                                        after_acct = acct
-                                for acct in before.values()[0]:
-                                    if "account_override" in acct:
-                                        before_acct = acct
+            for verification_point in after.values()[0]:
+                if verification_point not in before.values()[0]:
+                    print "{0} {1} was not found in {2}".format(after.keys()[0][1], verification_point,
+                                                                before.keys()[0][1])
+                    if "account" in verification_point:
+                        for acct in after.values()[0]:
+                            if "account" in acct:
+                                after_acct = acct
+                        for acct in before.values()[0]:
+                            if "account_override" in acct:
+                                before_acct = acct
 
-                    if before_acct is not None and after_acct is not None:
-                        print "\n{0} was matched to {1}".format(before_acct, after_acct)
+            if before_acct is not None and after_acct is not None:
+                print "\n{0} was matched to {1}".format(before_acct, after_acct)
 
 order_id = testotd().optmenu()
 # order_id = ["e0748fcb-8ebb-47fc-b744-d64296965f55", ]
