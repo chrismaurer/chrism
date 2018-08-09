@@ -4,18 +4,16 @@ from ttapi import aenums, cppclient
 priceSession = Manager().getPriceSession()
 priceSrv = Manager().getPriceServer()
 products = priceSession.getProducts()
-missing_agile = []
+contracts_missing_agile = []
 for product in products:
     contracts = priceSession.getContracts(product)
     for contract in contracts:
-        if 1080 not in contract.RetrieveAttachmentIDs():
-            missing_agile.append(" ".join([product.prod_chr, str(product.prod_type).replace("TT_PROD_", ""), contract.seriesKey, "\n"]))
+        if 1027 not in contract.RetrieveAttachmentIDs():
+            contracts_missing_agile.append(contract)
 
-if len(missing_agile) > 0:
-    logfile = open(r"c:\tt\agile_text.log", "w")
-    print "\n\n\nThe following contracts are missing the agile attachment:\n\n"
-    for instrument in missing_agile:
-        logfile.write(instrument)
-    logfile.close()
+if len(contracts_missing_agile) > 0:
+    print "These contracts did not pass the test:\n", contracts_missing_agile
 
 
+        break
+    break

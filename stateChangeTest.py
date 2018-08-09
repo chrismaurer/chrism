@@ -8,7 +8,7 @@ orderSession = Manager().getOrderFillSession()
 allCustDefaults = Manager().getCustomers()
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-products = priceSession.getProducts(prodName='NK', prodType=aenums.TT_PROD_FUTURE)
+products = priceSession.getProducts(prodName='JGBM', prodType=aenums.TT_PROD_FUTURE)
 product = products[0]
 contracts = priceSession.getContracts(product)#, contractKeys="FUT_NK225M_1704")
 contract = contracts[2]
