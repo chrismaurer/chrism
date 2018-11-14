@@ -35,3 +35,23 @@ while True:
 
 
 
+q = open(r'/var/log/debesys/OC_hkex.log', 'r')
+all_uexids = []
+dups = []
+for line in q.readlines():
+    if "exec_id" in line:
+        for elem in line.split(" "):
+            date = " ".join(line.split(" ")[0:2])
+            if elem.startswith("exec_id"):
+                exid = elem.split("=")[-1].replace("\"", "")
+                exid = exid.replace("\n", "")
+            if elem.startswith("unique_exec_id"):
+                uexid = elem.split("=")[-1].replace("\"", "")
+                uexid = uexid.replace("\n", "")
+        print " ".join([date, exid, uexid])
+        if uexid not in all_uexids:
+            all_uexids.append(uexid)
+        else:
+            if uexid in all_uexids and uexid not in dups:
+                dups.append(uexid)
+q.close()

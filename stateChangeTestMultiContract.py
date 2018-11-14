@@ -13,9 +13,9 @@ max_detailed_depth = 3
 prev_trading_status = None
 curr_trading_status = None
 pricey = None
-products = priceSession.getProducts(prodName='TW', prodType=aenums.TT_PROD_FUTURE)
+products = priceSession.getProducts(prodName='MY', prodType=aenums.TT_PROD_FUTURE)
 product = products[0]
-contracts = priceSession.getContracts(product, contractKeys=["TWH19", ])
+contracts = priceSession.getContracts(product, contractKeys=["MYX18", "MYH19"])
 while True:
     while curr_trading_status == prev_trading_status:
         for contract in contracts:
@@ -26,7 +26,10 @@ while True:
             except:
                 pass
         time.sleep(15)
+    pyscreenshot.grab_to_file(r"C:\tt\screenshot_state-" + str(curr_trading_status) + "_" + "time-" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_PRE-DELETE.png")
     orderSession.deleteMyOrders()
+    time.sleep(2)
+    pyscreenshot.grab_to_file(r"C:\tt\screenshot_state-" + str(curr_trading_status) + "_" + "time-" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_POST-DELETE.png")
     for contract in contracts:
         try:
             for enum, price in priceSession.getPrices(contract).items():
@@ -41,7 +44,7 @@ while True:
         except:
             pass
         if pricey is None:
-            pricey = 30000
+            pricey = 70000
         else:
             if pricey is not None:
                 dd = 1
@@ -73,13 +76,15 @@ while True:
                     crossOrder.setFields(**orderParams)
                     orderSession.send(crossOrder)
     time.sleep(2)
-    pyscreenshot.grab_to_file(r"C:\tt\screenshot_" + str(curr_trading_status) + "_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_ADD.png")
-    time.sleep(2)
-    pyscreenshot.grab_to_file(r"C:\tt\screenshot_" + str(curr_trading_status) + "_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_ADDED.png")
+    pyscreenshot.grab_to_file(r"C:\tt\screenshot_state-" + str(curr_trading_status) + "_" + "time-" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_ADD.png")
+    time.sleep(5)
+    pyscreenshot.grab_to_file(r"C:\tt\screenshot_state-" + str(curr_trading_status) + "_" + "time-" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_ADDED.png")
     time.sleep(45)
     try:
         for enum, price in priceSession.getPrices(contract).items():
             if "SRS_STATUS" in str(enum):
+                if price.value not in (2, 6):
+                    pyscreenshot.grab_to_file(r"C:\tt\screenshot_state-" + str(curr_trading_status) + "_" + "time-" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_CHECK.png")
                 prev_trading_status = price.value
     except:
         pass
