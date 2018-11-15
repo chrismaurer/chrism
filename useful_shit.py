@@ -35,11 +35,11 @@ while True:
 
 
 
-q = open(r'/var/log/debesys/OC_hkex.log', 'r')
+q = open(r'/var/log/debesys/OC_sgx.log', 'r')
 all_uexids = []
 dups = []
 for line in q.readlines():
-    if "exec_id" in line:
+    if "ExecutionReport" in line and "exec_id" in line:
         for elem in line.split(" "):
             date = " ".join(line.split(" ")[0:2])
             if elem.startswith("exec_id"):
