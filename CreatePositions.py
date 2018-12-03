@@ -8,16 +8,16 @@ custDefaults0 = Manager().getCustomers()[0]
 custDefaults1 = Manager().getCustomers()[0]
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-create_depth = True
+create_depth = False
 # prod_list = ["NAU", "NEA", "NEM", "NEXC", "NEXK", "NID", "NMD", "NJP", "NTW"]
 # prod_list = ["NIFTY", "JGBL", "JGBM", "JGBLM", "JGBSL", "NK225", "NK225M"]
 # prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI"]
 # prod_list = ["GOLD", "TSR2", "TWBL", "TWPL", "TEBL", "TEPL", "KENI", "KERC", "KERI"]
-# prod_list = ["IN", "NK", "JB", "TW"]
-prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI","HHN", "HHT", "HSN", "HST"]
+prod_list = ["JB", "JG", "KJ", "KU", "ND", "RT", "SY", "TF", "UC"]
+# prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI","HHN", "HHT", "HSN", "HST"]
 # prod_list = ["ZARB", "ZADS", "ZAL", "ZAXS", "ZBHA", "ZBHE", "ZBHF", "ZBOB", "ZBPC", "ZCBK", "ZCEN", "ZCIP", "ZCOA", "ZDEW", "ZDLF", "ZHCL", "ZHDB", "ZHDF", "ZHND", "ZHPC", "ZHUV", "ZICI", "ZIDE", "ZIHF", "ZIIB", "ZINF", "ZITC", "ZJST", "ZJUS", "ZKMB", "ZLIC", "ZLPC", "ZLT", "ZMM", "ZMSI", "ZONG", "ZPNB", "ZRCA", "ZRCO", "ZREC", "ZREL", "ZRIL", "ZSBI", "ZSUN", "ZTAT", "ZTCS", "ZTTD", "ZTTM", "ZUNB", "ZYES"]
 for instrument in prod_list:
-    products = priceSession.getProducts(prodName=instrument)
+    products = priceSession.getProducts(prodType=aenums.TT_PROD_FSPREAD, prodName=instrument)
     for product in products:
         all_contracts = priceSession.getContracts(product)
         contracts = all_contracts[:4]#len(all_contracts)-4:]

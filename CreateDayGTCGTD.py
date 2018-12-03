@@ -20,7 +20,7 @@ tiffies = ('GTD', 'GTC', 'GTDATE', 'GIS')#, 'FOK')
 restr = (None, aenums.TT_FOK_ORDER_RES, aenums.TT_IOC_ORDER_RES)
 products = priceSession.getProducts(prodType=aenums.TT_PROD_FUTURE, prodName="EY")
 for product in products:
-    contracts = priceSession.getContracts(product, contractKeys=["00B0LW00EYZ", "00B0IX00EYZ"])
+    contracts = priceSession.getContracts(product, contractKeys=["00B0KS00EYZ", "00B0LW00EYZ", "00B0IX00EYZ"])
     for contract in contracts:
         settlement_price = None
         for enum, price in priceSession.getPrices(contract).items():
