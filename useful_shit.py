@@ -35,7 +35,7 @@ while True:
 
 
 
-q = open(r'/var/log/debesys/OC_sgx.log', 'r')
+q = open(r'/var/log/debesys/OC_ose.log', 'r')
 all_uexids = []
 dups = []
 for line in q.readlines():
