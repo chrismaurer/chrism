@@ -109,7 +109,7 @@ class logfile_analiser():
         logfile = self.optmenu()
 
         for obID_state in obID_states:
-            print '\n\n', '-'*40, 'Session 1 - Test case 2, Scenario', OrderBookIDs.index(obID_state)+1,': Sec. A Interpretation of Status Data: Market Status', '-'*40, '\n\n'
+            print '\n\n', '-'*40, 'Session 1 - Test case 2, Scenario', obID_states.index(obID_state)+1,': Sec. A Interpretation of Status Data: Market Status', '-'*40, '\n\n'
             inputFile = open(logfile, 'r')
             in_file = False
             for line in inputFile.readlines():
