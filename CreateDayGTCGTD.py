@@ -1,6 +1,3 @@
-import time
-time.sleep(8100)
-connect()
 import datetime
 import time
 from pyrate.builder import Builder
@@ -19,6 +16,7 @@ priceSrv = Manager().getPriceServer()
 tiffies = ('GTD', 'GTC', 'GTDATE', 'GIS')#, 'FOK')
 restr = (None, aenums.TT_FOK_ORDER_RES, aenums.TT_IOC_ORDER_RES)
 products = priceSession.getProducts(prodType=aenums.TT_PROD_FUTURE, prodName="EY")
+time.sleep(60)
 for product in products:
     contracts = priceSession.getContracts(product, contractKeys=["00B0KS00EYZ", "00B0LW00EYZ", "00B0IX00EYZ"])
     for contract in contracts:
@@ -44,7 +42,7 @@ for product in products:
                 tiffy = 'GTD'
             pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
             stop_pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, -2))
-            orderParams = dict(acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1, order_qty=500, buy_sell=aenums.TT_BUY, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif=tiffy, srs=contract, exchange_clearing_account=custDefaults.exchange_clearing_account)#, stop_prc=stop_pricey)
+            orderParams = dict(acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1, order_qty=500, buy_sell=aenums.TT_SELL, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif=tiffy, srs=contract, exchange_clearing_account=custDefaults.exchange_clearing_account)#, stop_prc=stop_pricey)
             newOrder = TTAPIOrder()
             newOrder.setFields(**orderParams)
             # newOrder.order_flags = aenums.TT_IF_TOUCHED_MOD_CODE

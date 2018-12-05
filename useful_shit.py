@@ -7,7 +7,7 @@ import pyscreenshot
 
 while True:
     while time.localtime()[3] in range(5, 8) or time.localtime()[3] in range(16, 17):
-        pyscreenshot.grab_to_file(r"C:\tt\screenshot_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
+        pyscreenshot.grab_to_file(r"C:\tt\startup_test_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
         time.sleep(300)
 
 
@@ -28,7 +28,7 @@ while True:
             contracts = priceSession.getContracts(product)
             for contract in contracts:
                 print contract
-                pricedata = priceSession.getPrices(contract)
+                pricedata = priceSession.getPrices(contract, timeout=90)
         pyscreenshot.grab_to_file(r"C:\tt\screenshot_end_subscribe_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
     time.sleep(360)
 
@@ -81,4 +81,160 @@ f.close()
 exit()
 grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_ose.log | grep -c "2018-11-20.*ExecutionReport.* exec_id="
 grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log | grep -c "2018-11-20.*ExecutionReport.* exec_id="
+
+
+import time
+from pyrate.ttapi.manager import Manager
+from pyrate.ttapi.order import TTAPIOrder
+from ttapi import aenums, cppclient
+priceSession = Manager().getPriceSession()
+orderSession = Manager().getOrderFillSession()
+allCustDefaults = Manager().getCustomers()
+ordSrv = Manager().getOrderServer()
+priceSrv = Manager().getPriceServer()
+products = priceSession.getProducts(prodName='NK', prodType=aenums.TT_PROD_FUTURE)
+product = products[0]
+contracts = priceSession.getContracts(product)#, contractKeys="FUT_NK225M_1704")
+contract = contracts[9]
+custDefaults = allCustDefaults[-1]
+pricey = 50250
+order_attempt_count = 1
+while True:
+    if order_attempt_count > 3:
+        break
+    time.sleep(5)
+    try:
+        for enum, price in priceSession.getPrices(contract, timeout=90).items():
+            if "SRS_STATUS" in str(enum):
+                curr_trading_status = price.value
+    except:
+        pass
+    if curr_trading_status == 8:
+        pyscreenshot.grab_to_file(r"C:\tt\screenshot_" + str(curr_trading_status) + "_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_halftick.png")
+        time.sleep(5)
+
+
+
+import time
+import pyscreenshot
+import requests
+from pyrate.ttapi.manager import Manager
+from pyrate.ttapi.order import TTAPIOrder
+from ttapi import aenums, cppclient
+priceSession = Manager().getPriceSession()
+orderSession0 = Manager().getOrderFillSessions()[0]
+orderSession1 = Manager().getOrderFillSessions()[-1]
+custDefaults0 = Manager().getCustomers()[0]
+custDefaults1 = Manager().getCustomers()[0]
+ordSrv = Manager().getOrderServer()
+priceSrv = Manager().getPriceServer()
+create_depth = False
+pricey = None
+while True:
+    try:
+        products = priceSession.getProducts(prodType=aenums.TT_PROD_FUTURE)
+        for product in products:
+            contracts = priceSession.getContracts(product)#, contractKeys=["394016", "459552"])
+            trading = False
+            for contract in contracts:
+                curr_trading_status = None
+                if trading:
+                    break
+                else:
+                    for enum, price in priceSession.getPrices(contract, timeout=90).items():
+                        if "SRS_STATUS" in str(enum):
+                            curr_trading_status = price.value
+                            if curr_trading_status == 2 or curr_trading_status == 6 or curr_trading_status < 0 or curr_trading_status is None:
+                                trading = True
+                                break
+                            else:
+                                settlement_price = None
+                                for enum, price in priceSession.getPrices(contract, timeout=90).items():
+                                    if "SETTL" in str(enum):
+                                        settlement_price = price.value
+                                if settlement_price is None:
+                                    if "FUTURE" in str(product):
+                                        settlement_price = 50000
+                                    else:
+                                        settlement_price = 0
+                                pricey = settlement_price
+                                depth_level = 1
+                                while depth_level <= 1:
+                                    for i in range(0, 2):
+                                        side = aenums.TT_BUY
+                                        custDefaults = custDefaults0
+                                        kwantiteh = 1
+                                        if i == 1:
+                                            side = aenums.TT_SELL
+                                            custDefaults = custDefaults1
+                                            kwantiteh = 1
+                                            if create_depth:
+                                                pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
+                                        orderParams = dict(order_qty=kwantiteh, buy_sell=side, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif="GTC", srs=contract, exchange_clearing_account=custDefaults.exchange_clearing_account, clearing_mbr=custDefaults.exchange_sub_account, exchange_sub_account=custDefaults.exchange_sub_account, free_text=custDefaults.free_text, acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1)
+                                        newOrder = TTAPIOrder()
+                                        newOrder.setFields(**orderParams)
+                                        if i == 0:
+                                            orderSession0.send(newOrder)
+                                        else:
+                                            orderSession0.send(newOrder)
+                                        depth_level += 1
+                                    if create_depth:
+                                        pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
+                                time.sleep(1)
+                    for enum, price in priceSession.getPrices(contract, timeout=90).items():
+                        if "INDICATIVE" in str(enum) and "PRC" in str(enum):
+                            logfile = open(r"C:\tt\indprc.log", "a")
+                            logfile.write(str([str("-".join([str(time.localtime()[0]), str(time.localtime()[1]), str(time.localtime()[2])])), str(":".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])])), str(contract.seriesKey), str(enum), str(price.value)]))
+                            pyscreenshot.grab_to_file(r"C:\tt\equilibrium_prc_test_" + ":".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
+                            pricey = None
+                            logfile.close()
+    except:
+        print "ERROR"
+    time.sleep(60)
+
+
+
+import time
+import requests
+import json
+from pyrate.ttapi.manager import Manager
+from ttapi import aenums
+slackurl = 'https://hooks.slack.com/services/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'
+headers = {'content-type': 'application/json'}
+priceSession = Manager().getPriceSession()
+while True:
+    products_in_preopen = []
+    try:
+        products = priceSession.getProducts(prodType=aenums.TT_PROD_FUTURE)
+        for product in products:
+            contracts = priceSession.getContracts(product)#, contractKeys=["394016", "459552"])
+            trading = False
+            status_sent = False
+            for contract in contracts:
+                if status_sent:
+                    break
+                curr_trading_status = None
+                if trading:
+                    break
+                else:
+                    prices = priceSession.getPrices(contract, timeout=90)
+                    for enum, price in prices.items():
+                        if "SRS_STATUS" in str(enum):
+                            curr_trading_status = price.value
+                            if curr_trading_status != 8:
+                                trading = True
+                                break
+                            else:
+                                products_in_preopen.append(product.prod_chr)
+                                status_sent = True
+            time.sleep(1)
+    except:
+        print contract, prices
+        pass
+    if len(products_in_preopen) > 0:
+        text_block = "<@U0502QW1P> {0} The following products are now in Pre-Open {1}".format(":".join([str(time.localtime()[3]).zfill(2), str(time.localtime()[4]).zfill(2), str(time.localtime()[5]).zfill(2)]), str(products_in_preopen))
+        payload = {"channel": "#cmtest", "username": "webhookbot", "text": text_block}
+        json_data = json.dumps(payload)
+        requests.post(url=slackurl, data=json_data, headers=headers)
+    time.sleep(60)
 
