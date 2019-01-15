@@ -94,7 +94,7 @@
 
 import datetime                                                                 
 from datetime import timedelta                                                  
-origDate = datetime.date(2014,2,7)                                              
+origDate = datetime.date(2019,1,31)
 oneday = timedelta(days=1)                                                      
 FRIDAY = 4                                                                   
 nextMonth = (origDate.month % 12) + 1                                           

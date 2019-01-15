@@ -12,10 +12,10 @@ priceSrv = Manager().getPriceServer()
 max_detailed_depth = 3
 prev_trading_status = None
 curr_trading_status = None
-pricey = 70000
-products = priceSession.getProducts(prodName='MY', prodType=aenums.TT_PROD_FUTURE)
+pricey = 20600
+products = priceSession.getProducts(prodName='NK', prodType=aenums.TT_PROD_FUTURE)
 product = products[0]
-contracts = priceSession.getContracts(product, contractKeys=["MYX18", "MYH19"])
+contracts = priceSession.getContracts(product, contractKeys=["NKN19", "NKQ19"])
 while True:
     while curr_trading_status == prev_trading_status:
         for contract in contracts:
@@ -37,7 +37,7 @@ while True:
         except:
             pass
         if pricey is None:
-            pricey = 70000
+            pricey = 20600
         else:
             if pricey is not None:
                 dd = 1
@@ -70,9 +70,9 @@ while True:
                     orderSession.send(crossOrder)
     time.sleep(2)
     pyscreenshot.grab_to_file(r"C:\tt\screenshot_" + str(curr_trading_status) + "_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_ADD.png")
-    time.sleep(2)
+    time.sleep(10)
     pyscreenshot.grab_to_file(r"C:\tt\screenshot_" + str(curr_trading_status) + "_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + "_ADDED.png")
-    time.sleep(45)
+    time.sleep(40)
     try:
         for enum, price in priceSession.getPrices(contract).items():
             if "SRS_STATUS" in str(enum):
