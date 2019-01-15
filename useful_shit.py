@@ -35,15 +35,19 @@ while True:
 
 
 python
-f = open(r'/var/log/debesys/OC_ose.log', 'r')
+f = open(r'/var/log/debesys/OC_tocom.log', 'r')
 all_uexids = []
-dups = []
+all_exids = []
+uexid_dups = []
+exid_dups = []
 uexid_missing = []
+exid_missing = []
 uexid_missing_idx = []
+exid_missing_idx = []
 for line in f.readlines():
     exid, uexid, exectype = None, None, None
     date = " ".join(line.split(" ")[0:1])
-    if date == "2018-11-20":
+    if date == "2019-01-15":
         if " exec_id=" in line and "PENDING" not in line and "OBDL" not in line:
             for elem in line.split(" "):
                 if elem.startswith("exec_id"):
@@ -59,28 +63,50 @@ for line in f.readlines():
                     ordstatus = elem.split("=")[-1].replace("\"", "")
                     ordstatus = ordstatus.replace("\n", "")
             if " exec_id=" in line and " unique_exec_id=" not in line:
-                print line
                 uexid_missing.append(" + ".join([exectype, ordstatus]))
                 if " + ".join([exectype, ordstatus]) not in uexid_missing_idx:
                     uexid_missing_idx.append(" + ".join([exectype, ordstatus]))
+            if " unique_exec_id=" in line and " exec_id=" not in line:
+                exid_missing.append(" + ".join([exectype, ordstatus]))
+                if " + ".join([exectype, ordstatus]) not in uexid_missing_idx:
+                    exid_missing_idx.append(" + ".join([exectype, ordstatus]))
             if uexid is not None:
-                if uexid in all_uexids:
-                    if uexid not in dups:
-                        dups.append(uexid)
-                else:
+                if uexid not in all_uexids:
                     all_uexids.append(uexid)
+                else:
+                    if uexid not in uexid_dups:
+                        uexid_dups.append(uexid)
+            if exid is not None:
+                if exid not in all_exids:
+                    all_exids.append(exid)
+                else:
+                    if exid not in exid_dups:
+                        exid_dups.append(exid)
 
 print "\n\n\nRESULT\n----\nFound a total of {0} unique_exec_ids\n----\nThe following is a list of possible duplicates, followed by a list of EXEC TYPES that are missing unique_exec_id:".format(str(len(all_uexids)))
-for dup in dups:
-    print dup
+for uexid_dup in uexid_dups:
+    print uexid_dup
+
+print "-"*50
+
+for exid_dup in exid_dups:
+    print exid_dup
+
+print "-"*50
 
 for nouexid_exectype in uexid_missing_idx:
     print nouexid_exectype, ":", uexid_missing.count(nouexid_exectype)
 
+print "-"*50
+
+for noexid_exectype in exid_missing_idx:
+    print noexid_exectype, ":", exid_missing.count(noexid_exectype)
+
 f.close()
 exit()
-grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_ose.log | grep -c "2018-11-20.*ExecutionReport.* exec_id="
-grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log | grep -c "2018-11-20.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_tocom.log | grep -c "2019-01-15.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_tocom.log | grep -c "2019-01-15.*ExecutionReport.* unique_exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_tocom.log | grep -c "2019-01-15.*ExecutionReport.* exec_id="
 
 
 import time
