@@ -13,10 +13,9 @@ create_depth = False
 # prod_list = ["NIFTY", "JGBL", "JGBM", "JGBLM", "JGBSL", "NK225", "NK225M"]
 # prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI"]
 # prod_list = ["GOLD", "TSR2", "TWBL", "TWPL", "TEBL", "TEPL", "KENI", "KERC", "KERI"]
-# prod_list = ["JB", "JG", "KJ", "KU", "ND", "RT", "SY", "TF", "UC"]
-# prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI", "HHN", "HHT", "HSN", "HST"]
+prod_list = ["JB", "JG", "KJ", "KU", "ND", "RT", "SY", "TF", "UC"]
+# prod_list = ["MHI", "HSI", "HHN", "HHT", "HSN", "HST"]
 # prod_list = ["ZARB", "ZADS", "ZAL", "ZAXS", "ZBHA", "ZBHE", "ZBHF", "ZBOB", "ZBPC", "ZCBK", "ZCEN", "ZCIP", "ZCOA", "ZDEW", "ZDLF", "ZHCL", "ZHDB", "ZHDF", "ZHND", "ZHPC", "ZHUV", "ZICI", "ZIDE", "ZIHF", "ZIIB", "ZINF", "ZITC", "ZJST", "ZJUS", "ZKMB", "ZLIC", "ZLPC", "ZLT", "ZMM", "ZMSI", "ZONG", "ZPNB", "ZRCA", "ZRCO", "ZREC", "ZREL", "ZRIL", "ZSBI", "ZSUN", "ZTAT", "ZTCS", "ZTTD", "ZTTM", "ZUNB", "ZYES"]
-prod_list = ["MHI", ]
 for instrument in prod_list:
     products = priceSession.getProducts(prodName=instrument)
     for product in products:
@@ -31,7 +30,7 @@ for instrument in prod_list:
                         settlement_price = price.value
                 if settlement_price is None:
                     if "FUTURE" in str(product):
-                        settlement_price = 20000
+                        settlement_price = 26000
                     elif "OPTION" in str(product):
                         settlement_price = 150000
                     else:

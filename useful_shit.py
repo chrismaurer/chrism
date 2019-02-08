@@ -32,10 +32,8 @@ while True:
        pyscreenshot.grab_to_file(r"C:\tt\screenshot_end_subscribe_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
    time.sleep(360)
 
-
-
 python
-f = open(r'/var/log/debesys/OC_tocom.log', 'r')
+f = open(r'/var/log/debesys/OC_ose.log-20190115-1547557201', 'r')
 all_uexids = []
 all_exids = []
 uexid_dups = []
@@ -85,12 +83,20 @@ for line in f.readlines():
 
 print "\n\n\nRESULT\n----\nFound a total of {0} unique_exec_ids\n----\nThe following is a list of possible duplicates, followed by a list of EXEC TYPES that are missing unique_exec_id:".format(str(len(all_uexids)))
 for uexid_dup in uexid_dups:
-   print uexid_dup
+    if ":" in uexid_dup:
+        print uexid_dup
+    else:
+        if uexid_dups.count(uexid_dup) > 2:
+            print uexid_dup
 
 print "-"*50
 
 for exid_dup in exid_dups:
-   print exid_dup
+    if ":" in exid_dup:
+        print exid_dup
+    else:
+        if exid_dups.count(exid_dup) > 2:
+            print exid_dup
 
 print "-"*50
 
@@ -104,9 +110,12 @@ for noexid_exectype in exid_missing_idx:
 
 f.close()
 exit()
-grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_tocom.log | grep -c "2019-01-15.*ExecutionReport.* exec_id="
-grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_tocom.log | grep -c "2019-01-15.*ExecutionReport.* unique_exec_id="
-grep -v -e MEMORY -e PENDING /var/log/debesys/OC_tocom.log | grep -c "2019-01-15.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* unique_exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* exec_id=0"
+
+
 
 
 import time
