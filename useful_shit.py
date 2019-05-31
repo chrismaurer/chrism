@@ -45,7 +45,7 @@ exid_missing_idx = []
 for line in f.readlines():
    exid, uexid, exectype = None, None, None
    date = " ".join(line.split(" ")[0:1])
-   if date == "2019-01-15":
+   if date == "2019-03-14":
        if " exec_id=" in line and "PENDING" not in line and "OBDL" not in line:
            for elem in line.split(" "):
                if elem.startswith("exec_id"):
@@ -272,3 +272,58 @@ while True:
        json_data = json.dumps(payload)
        requests.post(url=slackurl, data=json_data, headers=headers)
    time.sleep(60)
+
+
+
+
+python
+f = open(r'/var/log/debesys/parsed_B45J1TT007.log', 'r')
+all_uexids = []
+all_exids = []
+uexid_dups = []
+exid_dups = []
+uexid_missing = []
+exid_missing = []
+uexid_missing_idx = []
+exid_missing_idx = []
+order_id, uexid, exectype = None, None, None
+for line in f.readlines():
+    if order_id is not None:
+        if order_id in line:
+            if "MO31" in line:
+                print line
+                order_id = None
+    if "2019-Mar" in line:
+       date = line.split(" ")[2]
+       if date == "2019-Mar-14":
+           if "BD6" in line:
+               for elem in line.split(" "):
+                   if elem.startswith("ex_customer_s=}order_number_u"):
+                       order_id = elem.split("=")[-1]
+
+f.close()
+
+python
+f = open(r'/var/log/debesys/OC_coinflex.log', 'r')
+for line in f.readlines():
+    ord_status, exch_ord_status = None, None
+    if "ExecutionReport" in line:
+        date = line.split(" ")[0]
+        if date == "2019-05-31":
+            for elem in line.split(" "):
+                if elem.startswith("ord_status="):
+                    ord_status = elem.split("=")[-1]
+                elif elem.startswith("secondary_order_id="):
+                    sec_order_id = elem.split("=")[-1]
+                elif elem.startswith("exch_ord_status="):
+                    exch_ord_status = elem.split("=")[-1]
+                elif elem.startswith("ord_type="):
+                    ord_type = elem.split("=")[-1]
+            if ord_status is not None and exch_ord_status is not None:
+                if "PENDING" not in ord_status:
+                    # if ord_status != exch_ord_status:
+                    if len(sec_order_id) > 8:
+                        print line
+
+f.close()
+
