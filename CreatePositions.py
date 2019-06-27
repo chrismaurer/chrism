@@ -1,3 +1,4 @@
+import time
 from pyrate.ttapi.manager import Manager
 from pyrate.ttapi.order import TTAPIOrder
 from ttapi import aenums, cppclient
@@ -8,13 +9,13 @@ custDefaults0 = Manager().getCustomers()[0]
 custDefaults1 = Manager().getCustomers()[0]
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-create_depth = True
+create_depth = False
 # prod_list = ["NAU", "NEA", "NEM", "NEXC", "NEXK", "NID", "NMD", "NJP", "NTW"]
 # prod_list = ["NIFTY", "JGBL", "JGBM", "JGBLM", "JGBSL", "NK225", "NK225M"]
 # prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI"]
 # prod_list = ["GOLD", "TSR2", "TWBL", "TWPL", "TEBL", "TEPL", "KENI", "KERC", "KERI"]
-# prod_list = ["IN", "NK", "JB", "TW"]
-prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI","HHN", "HHT", "HSN", "HST"]
+prod_list = ["JB", "JG", "KJ", "KU", "ND", "RT", "SY", "TF", "UC"]
+# prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI","HHN", "HHT", "HSN", "HST"]
 # prod_list = ["ZARB", "ZADS", "ZAL", "ZAXS", "ZBHA", "ZBHE", "ZBHF", "ZBOB", "ZBPC", "ZCBK", "ZCEN", "ZCIP", "ZCOA", "ZDEW", "ZDLF", "ZHCL", "ZHDB", "ZHDF", "ZHND", "ZHPC", "ZHUV", "ZICI", "ZIDE", "ZIHF", "ZIIB", "ZINF", "ZITC", "ZJST", "ZJUS", "ZKMB", "ZLIC", "ZLPC", "ZLT", "ZMM", "ZMSI", "ZONG", "ZPNB", "ZRCA", "ZRCO", "ZREC", "ZREL", "ZRIL", "ZSBI", "ZSUN", "ZTAT", "ZTCS", "ZTTD", "ZTTM", "ZUNB", "ZYES"]
 for instrument in prod_list:
     products = priceSession.getProducts(prodName=instrument)
@@ -30,7 +31,7 @@ for instrument in prod_list:
                         settlement_price = price.value
                 if settlement_price is None:
                     if "FUTURE" in str(product):
-                        settlement_price = 15000
+                        settlement_price = 220000000
                     elif "OPTION" in str(product):
                         settlement_price = 1500
                     else:
@@ -60,6 +61,7 @@ for instrument in prod_list:
                     if create_depth:
                         pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
                     print "pricey =", pricey
+                    time.sleep(.5)
                 # break
         # break
 

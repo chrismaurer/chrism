@@ -8,11 +8,11 @@ class testotd():
     
     def __init__(self):
 
-        self.oc_log = r"/Users/cmaurer/testlog.log"
+        # self.oc_log = r"/Users/cmaurer/testlog.log"
 
-        # for logfile in os.listdir(r"/var/log/debesys/"):
-        #     if logfile.startswith("OC_") and logfile.endswith(".log"):
-        #         self.oc_log = r"/var/log/debesys/" + logfile
+        for logfile in os.listdir(r"/var/log/debesys/"):
+            if logfile.startswith("OC_") and logfile.endswith(".log"):
+                self.oc_log = r"/var/log/debesys/" + logfile
 
         self.verify_data_list = []
 
@@ -502,6 +502,6 @@ class testotd():
             if before_acct is not None and after_acct is not None:
                 print "\n{0} was matched to {1}".format(before_acct, after_acct)
 
-# order_id = testotd().optmenu()
-order_id = ["10b13275-7fb4-4809-b497-be2d4dff7ed6", ]
+order_id = testotd().optmenu()
+# order_id = ["10b13275-7fb4-4809-b497-be2d4dff7ed6", ]
 testotd().verify_otd_data()

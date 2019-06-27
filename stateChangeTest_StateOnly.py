@@ -5,7 +5,7 @@ priceSession = Manager().getPriceSession()
 allCustDefaults = Manager().getCustomers()
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
-products = priceSession.getProducts(prodName='GASO')
+products = priceSession.getProducts(prodName='HSI')
 product = products[0]
 contracts = priceSession.getContracts(product)
 contract = contracts[0]

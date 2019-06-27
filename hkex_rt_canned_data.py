@@ -41,6 +41,9 @@ class logfile_analiser():
                 elif 'msg_type=30' in line and '_id=%s' % order_book_id in line:
                     print line
                     in_file = True
+                elif 'msg_type=30' in line and 'ignoring delisted' in line:
+                    print line
+                    in_file = True
 
             if not in_file:
                 print 'order_book_id %s Not Found!' % order_book_id
@@ -235,14 +238,13 @@ class logfile_analiser():
                 '-' * 40, '\n\n'
             in_file = False
             for line in inputfile.readlines():
-                if 'Commodity Status Received [code:%s]' % commodity_code[0] and \
-                   '[suspended:%s]' % commodity_code[1] in line:
-                    print line
-                    in_file = True
-                elif 'Commodity Status Received [code=%s]' % commodity_code[0] and \
-                     '[suspended:%s]' % commodity_code[1] in line:
-                    print line
-                    in_file = True
+                if 'Commodity Status Received' in line:
+                    if '[code:%s]' % commodity_code[0] in line and '[suspended:%s]' % commodity_code[1] in line:
+                        print line
+                        in_file = True
+                    elif '[code=%s]' % commodity_code[0] in line and '[suspended=%s]' % commodity_code[1] in line:
+                        print line
+                        in_file = True
 
             if not in_file:
                 print 'commodity_code %s Not Found!' % commodity_code
@@ -302,12 +304,9 @@ class logfile_analiser():
 
         alerts = [['102', ''],
                   ['1', 'Welcome to OMDD market rehearsal'],
-                  ['2', 'Start of Volatility Control Mechanism cool-off period: [HSIN8]'],
-                  ['3', 'Start of Volatility Control Mechanism cool-off period: [HSIN8]'],
-                  ['412', 'Start of Volatility Control Mechanism cool-off period: [MCHN8]'],
-                  ['413', 'Start of Volatility Control Mechanism cool-off period: [MCHN8]'],
-                  ['420', 'Start of Volatility Control Mechanism cool-off period: [MHIN8]'],
-                  ['421', 'Start of Volatility Control Mechanism cool-off period: [MHIN8]']]
+                  ['1', 'Start of Volatility Control Mechanism cool-off period: [HSIN8]'],
+                  ['6', 'Start of Volatility Control Mechanism cool-off period: [MCHN8]'],
+                  ['8', 'Start of Volatility Control Mechanism cool-off period: [MHIN8]']]
 
         logfile = self.optmenu()
 
@@ -317,9 +316,13 @@ class logfile_analiser():
                 ': Interpretation of News : Market Alert', '-' * 40, '\n\n'
             in_file = False
             for line in inputfile.readlines():
-                if 'Market Alert' in line and 'altId:%s' % alert[0] in line and 'hdr:%s' % alert[1] in line:
-                    print line
-                    in_file = True
+                if 'Market Alert' in line:
+                    if 'altId:%s' % alert[0] in line and 'hdr:%s' % alert[1] in line:
+                        print line
+                        in_file = True
+                    elif 'alert_id=%s' % alert[0] in line and 'header=%s' % alert[1] in line:
+                        print line
+                        in_file = True
 
             if not in_file:
                 print 'Market Alert %s Not Found!' % alert
@@ -1984,63 +1987,63 @@ class logfile_analiser():
         self.parse_logfile_1b()
         self.parse_logfile_1c()
         # self.parse_logfile_2()
-        self.parse_logfile_3()
-        self.parse_logfile_04()
+        # self.parse_logfile_3()
+        # self.parse_logfile_04()
         # self.parse_logfile_05()
-        self.parse_logfile_08()
-        self.parse_logfile_10()
-        self.parse_logfile_131d()
-        self.parse_logfile_132c()
-        self.parse_logfile_133d()
-        self.parse_logfile_134d()
-        self.parse_logfile_135d()
-        self.parse_logfile_136c()
-        self.parse_logfile_137d()
-        self.parse_logfile_138d()
-        self.parse_logfile_139d()
-        self.parse_logfile_1310d()
-        self.parse_logfile_1311d()
-        self.parse_logfile_1312d()
-        self.parse_logfile_1313d()
-        self.parse_logfile_1314d()
-        self.parse_logfile_1315d()
-        self.parse_logfile_1316d()
-        self.parse_logfile_1317d()
-        self.parse_logfile_1318d()
-        self.parse_logfile_1319d()
-        self.parse_logfile_1320c()
-        self.parse_logfile_1321d()
-        self.parse_logfile_1322d()
-        self.parse_logfile_1323d()
-        self.parse_logfile_1324c()
-        self.parse_logfile_1325d()
-        self.parse_logfile_1326d()
-        self.parse_logfile_1327d()
-        self.parse_logfile_1328c()
-        self.parse_logfile_1329d()
-        self.parse_logfile_1330d()
-        self.parse_logfile_16a()
-        self.parse_logfile_16b()
-        self.parse_logfile_16bc()
-        self.parse_logfile_16d()
-        self.parse_logfile_16e()
-        self.parse_logfile_16f()
-        self.parse_logfile_16g()
-        self.parse_logfile_16h()
-        self.parse_logfile_16i()
-        self.parse_logfile_16j()
-        self.parse_logfile_16k()
-        self.parse_logfile_16l()
-        self.parse_logfile_16m()
-        self.parse_logfile_16n()
-        self.parse_logfile_16o()
-        self.parse_logfile_16p()
-        self.parse_logfile_17a()
-        self.parse_logfile_17b()
-        self.parse_logfile_17c()
-        self.parse_logfile_17d()
-        self.parse_logfile_17e()
-        self.parse_logfile_17f()
+        # self.parse_logfile_08()
+        # self.parse_logfile_10()
+        # self.parse_logfile_131d()
+        # self.parse_logfile_132c()
+        # self.parse_logfile_133d()
+        # self.parse_logfile_134d()
+        # self.parse_logfile_135d()
+        # self.parse_logfile_136c()
+        # self.parse_logfile_137d()
+        # self.parse_logfile_138d()
+        # self.parse_logfile_139d()
+        # self.parse_logfile_1310d()
+        # self.parse_logfile_1311d()
+        # self.parse_logfile_1312d()
+        # self.parse_logfile_1313d()
+        # self.parse_logfile_1314d()
+        # self.parse_logfile_1315d()
+        # self.parse_logfile_1316d()
+        # self.parse_logfile_1317d()
+        # self.parse_logfile_1318d()
+        # self.parse_logfile_1319d()
+        # self.parse_logfile_1320c()
+        # self.parse_logfile_1321d()
+        # self.parse_logfile_1322d()
+        # self.parse_logfile_1323d()
+        # self.parse_logfile_1324c()
+        # self.parse_logfile_1325d()
+        # self.parse_logfile_1326d()
+        # self.parse_logfile_1327d()
+        # self.parse_logfile_1328c()
+        # self.parse_logfile_1329d()
+        # self.parse_logfile_1330d()
+        # self.parse_logfile_16a()
+        # self.parse_logfile_16b()
+        # self.parse_logfile_16bc()
+        # self.parse_logfile_16d()
+        # self.parse_logfile_16e()
+        # self.parse_logfile_16f()
+        # self.parse_logfile_16g()
+        # self.parse_logfile_16h()
+        # self.parse_logfile_16i()
+        # self.parse_logfile_16j()
+        # self.parse_logfile_16k()
+        # self.parse_logfile_16l()
+        # self.parse_logfile_16m()
+        # self.parse_logfile_16n()
+        # self.parse_logfile_16o()
+        # self.parse_logfile_16p()
+        # self.parse_logfile_17a()
+        # self.parse_logfile_17b()
+        # self.parse_logfile_17c()
+        # self.parse_logfile_17d()
+        # self.parse_logfile_17e()
+        # self.parse_logfile_17f()
 
 
 logRead = logfile_analiser()
