@@ -10,58 +10,70 @@ custDefaults1 = Manager().getCustomers()[0]
 ordSrv = Manager().getOrderServer()
 priceSrv = Manager().getPriceServer()
 create_depth = False
+kwantiteh = 1
 # prod_list = ["NAU", "NEA", "NEM", "NEXC", "NEXK", "NID", "NMD", "NJP", "NTW"]
 # prod_list = ["NIFTY", "JGBL", "JGBM", "JGBLM", "JGBSL", "NK225", "NK225M"]
-# prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI"]
-# prod_list = ["GOLD", "TSR2", "TWBL", "TWPL", "TEBL", "TEPL", "KENI", "KERC", "KERI"]
+# prod_list = ["HSI", "CTC", "HNP", "GDR", "HSB", "HSI", "HHN", "HHTproi", "HSN", "HST"]
+# prod_list = ['KERO', 'GOLD', 'CGAS', 'CKER', 'M-GD', 'PLAT', 'TEPL', 'KENI', 'KERC', 'KERI']
+# prod_list = ["HSW", "HHW", ]
+# prod_list = ["VN", "NVN"]
 prod_list = ["JB", "JG", "KJ", "KU", "ND", "RT", "SY", "TF", "UC"]
-# prod_list = ["CTC", "HNP", "GDR", "HSB", "HSI","HHN", "HHT", "HSN", "HST"]
+# prod_list = ["LUA", "LUZ", "LUC", "LUP", "LUN", "LUS"]
+# prod_list = ["XBT/USDT", ]
+# prod_list = ["EY", ]
+# prod_list = ["MHI", "HSI", "HHN", "HHT", "HSN", "HST", "ALB"]
 # prod_list = ["ZARB", "ZADS", "ZAL", "ZAXS", "ZBHA", "ZBHE", "ZBHF", "ZBOB", "ZBPC", "ZCBK", "ZCEN", "ZCIP", "ZCOA", "ZDEW", "ZDLF", "ZHCL", "ZHDB", "ZHDF", "ZHND", "ZHPC", "ZHUV", "ZICI", "ZIDE", "ZIHF", "ZIIB", "ZINF", "ZITC", "ZJST", "ZJUS", "ZKMB", "ZLIC", "ZLPC", "ZLT", "ZMM", "ZMSI", "ZONG", "ZPNB", "ZRCA", "ZRCO", "ZREC", "ZREL", "ZRIL", "ZSBI", "ZSUN", "ZTAT", "ZTCS", "ZTTD", "ZTTM", "ZUNB", "ZYES"]
 for instrument in prod_list:
-    products = priceSession.getProducts(prodName=instrument)
+    products = priceSession.getProducts(prodName=instrument)#, prodType=aenums.TT_PROD_FUTURE)
     for product in products:
         all_contracts = priceSession.getContracts(product)
-        contracts = all_contracts[:4]#len(all_contracts)-4:]
+        contracts = all_contracts[len(all_contracts)-4:]
         for contract in contracts:
-            if "" in contract.seriesKey:
-                pricey = None
-                settlement_price = None
-                for enum, price in priceSession.getPrices(contract).items():
-                    if "SETTL" in str(enum):
-                        settlement_price = price.value
-                if settlement_price is None:
-                    if "FUTURE" in str(product):
-                        settlement_price = 220000000
-                    elif "OPTION" in str(product):
-                        settlement_price = 1500
+            settlement_price = None
+            high_price = None
+            for enum, price in priceSession.getPrices(contract).items():
+                if "SETTL" in str(enum):
+                    settlement_price = price.value
+                elif "CLOSE" in str(enum):
+                    high_price = price.value
+                elif "HIGH" in str(enum):
+                    high_price = price.value
+            pricey = settlement_price
+            if settlement_price is None:
+                pricey = high_price #5000 #order price 0.5000 for NAU Spread
+                if pricey is None:
+                    pricey = 3000000
+                if "FUTURE" not in str(product):
+                    pricey = 30
+            depth_level = 1
+            while depth_level <= 1:
+                for i in range(0, 2):
+                    side = aenums.TT_BUY
+                    custDefaults = custDefaults0
+                    if i == 1:
+                        side = aenums.TT_SELL
+                        custDefaults = custDefaults1
+                        if create_depth:
+                            pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
+                    # orderParams = dict(order_qty=kwantiteh, buy_sell=side, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif="GTD", srs=contract, exchange_clearing_account="TM302", clearing_mbr=custDefaults.exchange_sub_account, exchange_sub_account=custDefaults.exchange_sub_account, free_text=custDefaults.free_text, acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1)
+                    orderParams = dict(order_qty=kwantiteh, buy_sell=side, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif="GTD", srs=contract, exchange_clearing_account=custDefaults.exchange_clearing_account, clearing_mbr=custDefaults.exchange_sub_account, exchange_sub_account=custDefaults.exchange_sub_account, free_text=custDefaults.free_text, acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1)
+                    newOrder = TTAPIOrder()
+                    newOrder.setFields(**orderParams)
+                    if i == 0:
+                        orderSession0.send(newOrder)
                     else:
-                        settlement_price = 150
-                pricey = settlement_price #5000 #order price 0.5000 for NAU Spread
-                depth_level = 1
-                while depth_level <= 2:
-                    for i in range(0, 2):
-                        side = aenums.TT_BUY
-                        custDefaults = custDefaults0
-                        kwantiteh = 1
-                        if i == 1:
-                            side = aenums.TT_SELL
-                            custDefaults = custDefaults1
-                            kwantiteh = 1
-                            if create_depth:
-                                pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
-                        # orderParams = dict(order_qty=kwantiteh, buy_sell=side, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif="GTD", srs=contract, exchange_clearing_account="TM302", clearing_mbr=custDefaults.exchange_sub_account, exchange_sub_account=custDefaults.exchange_sub_account, free_text=custDefaults.free_text, acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1)
-                        orderParams = dict(order_qty=kwantiteh, buy_sell=side, order_action=aenums.TT_ORDER_ACTION_ADD, limit_prc=pricey, order_type=aenums.TT_LIMIT_ORDER, tif="GTD", srs=contract, exchange_clearing_account=custDefaults.exchange_clearing_account, clearing_mbr=custDefaults.exchange_sub_account, exchange_sub_account=custDefaults.exchange_sub_account, free_text=custDefaults.free_text, acct_type=cppclient.AEnum_Account.TT_ACCT_AGENT_1)
-                        newOrder = TTAPIOrder()
-                        newOrder.setFields(**orderParams)
-                        if i == 0:
-                            orderSession0.send(newOrder)
-                        else:
-                            orderSession0.send(newOrder)
-                        depth_level += 1
-                    if create_depth:
-                        pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
-                    print "pricey =", pricey
-                    time.sleep(.5)
+                        orderSession0.send(newOrder)
+                    # enable this to create an extra sell side order
+                    # if i == 1:
+                    #     newOrder2 = TTAPIOrder()
+                    #     newOrder2.setFields(**orderParams)
+                    #     newOrder2.order_qty = kwantiteh
+                    #     orderSession0.send(newOrder2)
+                    depth_level += 1
+                if create_depth:
+                    pricey = (cppclient.TTTick.PriceIntToInt(pricey, contract, +1))
+                # print "pricey =", pricey
+                # time.sleep(300)
                 # break
         # break
 

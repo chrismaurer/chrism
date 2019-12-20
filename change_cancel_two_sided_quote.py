@@ -22,19 +22,19 @@ soid = None
 
 ############################
 # update values below for your connection/account/user
-connection_id = 8001 #11838
-user_id = 4339 #525
-account_id = 7620 #597
-account = "trish-share" #"lou-cert"
+connection_id = 18535 #11838
+user_id = 9587 #525
+account_id = 104720 #597
+account = "MaurHKEX-MM" #"lou-cert"
 ############################
 wait_topic = 'OR.OC.{}'.format(connection_id)
 
 quote_side_1=[
-       {'qty':4,'side':1,'price':32860}, #5100
-       {'qty':10,'side':2,'price':32870}  #23000
+       {'qty':100,'side':1,'price':10520}, #5100
+       {'qty':100,'side':2,'price':10530}  #23000
      ]
 attrs = {
-        'instrument_id':14812862346263533632, #MCHV6
+        'instrument_id':1031490871226628216, #MCHX9
         'quote_side':quote_side_1,
         'ord_type':enums.ORD_TYPE_LIMIT,
         'time_in_force':enums.TIME_IN_FORCE_DAY,
@@ -83,17 +83,19 @@ def RunTest():
 
 #########################################################################
 def SendNewQuote(submitter, attrs):
+
     global responses, soid
     quote_id = uuid.uuid4()
     SetQuoteId(attrs, quote_id)
     msg = dict_to_protobuf(attrs, NewQuote)
-    print '\nSent NewQuote {} on {}\n'.format(quote_id, submitter.send_topic)
     print msg
+
     submitter.send(msg)
+    print '\nSent NewQuote {} on {}\n'.format(quote_id, submitter.send_topic)
 
  #Wait for a response
     try:
-        msgs = submitter.wait_for_response(Header.MSG_QUOTE_RESPONSE, wait_topic, timeout=60, exists=True)
+        msgs = submitter.wait_for_response(Header.MSG_QUOTE_RESPONSE, wait_topic, timeout=120, exists=True)
         print '\nQuoteResponse for new quote received:\n'
         responses = responses + submitter.order_responses[quote_id]
         soid = submitter.order_responses[quote_id][-1].order_response.secondary_order_id

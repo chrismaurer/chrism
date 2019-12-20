@@ -17,7 +17,10 @@ class testotd():
         self.verify_data_list = []
 
         self.order_tags = { "account_code": "PARTY_ROLE_ACCOUNT_CODE",
+                            "account_type": "PARTY_ROLE_ACCOUNT_TYPE",
                             "account": "PARTY_ROLE_CUSTOMER_ACCOUNT",
+                            "account_info": "PARTY_ROLE_CUSTOMER_INFO",
+                            "": "PARTY_ROLE_ALGO_STRATEGY_TYPE",
                             "authorized group id": "PARTY_ROLE_ORDER_ENTRY_OPERATOR_ID",
                             "clearing_account": "PARTY_ROLE_CLEARING_ACCOUNT",
                             "clearing_firm_id": "PARTY_ROLE_CLEARING_FIRM",
@@ -55,6 +58,7 @@ class testotd():
                         "144": "PARTY_ROLE_DESK_ID",
                         "439": "PARTY_ROLE_CLEARING_FIRM",  # Clearing Firm ID, NYBOT House Number, WCE House Number
                         "440": "PARTY_ROLE_CLEARING_ACCOUNT",
+                        "528": "PARTY_ROLE_ACCOUNT_TYPE",
                         "9121": "sMemo",
                         "9195": "PARTY_ROLE_ACCOUNT_CODE",
                         "9700": "order_origination",
@@ -76,6 +80,9 @@ class testotd():
         self.order_capacity_mapping = {"0": "ORDER_CAPACITY_PRINCIPAL",
                                        "1": "ORDER_CAPACITY_RISKLESS_PRINCIPAL",
                                        "2": "ORDER_CAPACITY_AGENCY"}
+
+        self.account_type_mapping = {"0": "Client (Agency)",
+                                     "9": "House (Principal)"}
 
     def optmenu(self):
     
@@ -303,6 +310,8 @@ class testotd():
                             log_message_dict[k] = "No"
                         if log_message_dict[k] == "1":
                             log_message_dict[k] = "Yes"
+                    elif "account_type" in k:
+                        log_message_dict[k] = self.account_type_mapping[log_message_dict[k]]
                     elif "order_capacity" in k:
                         log_message_dict[k] = self.order_capacity_mapping[log_message_dict[k]]
                     elif "order_origination" in k:

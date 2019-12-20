@@ -19,10 +19,10 @@ for p1 in pp1:
         contract_key.append(str(p1.prod_chr))
         contract_key.append(str(p1.prod_type).split('_')[-1])
         if 'TT_NO_CALL_PUT_CODE' not in str(c1.callput):
-            contract_key.append(str(c1.callput))
+            contract_key.append(str(c1.callput).replace("TT_", ""))
         if c1.strike > 0:
             contract_key.append(str(c1.strike))
-        all_contracts_ticking1['_'.join(contract_key)] = contract_ticking1
+        all_contracts_ticking1[' '.join(contract_key)] = contract_ticking1
 
 for k in all_contracts_ticking1.keys():
     output_file.write(k + ", " + str(all_contracts_ticking1[k]) + "\n")

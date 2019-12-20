@@ -38,7 +38,7 @@ attrs = {
         'quote_side':quote_side_1,
         'ord_type':enums.ORD_TYPE_LIMIT,
         'time_in_force':enums.TIME_IN_FORCE_DAY,
-        'market_id':enums.TT_MARKET_ID_HKEX_DEV,
+        'market_id':enums.TT_MARKET_ID_HKEX,
         'connection_id': connection_id,
         'user_id': user_id,
         'account_id': account_id,

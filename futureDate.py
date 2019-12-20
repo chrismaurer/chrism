@@ -95,16 +95,16 @@ for month in range(1,13):
     first_day_of_month_datestamp = datetime.date(current_year, month, 1)
     first_weekday_of_month = datetime.date.weekday(first_day_of_month_datestamp)
 
-    if first_weekday_of_month == 4:
+    if first_weekday_of_month == 3:
         friday1 = first_day_of_month_datestamp + datetime.timedelta(14)
-    elif first_weekday_of_month > 4:
-        friday1 = first_day_of_month_datestamp - datetime.timedelta(first_weekday_of_month - 4)
+    elif first_weekday_of_month > 3:
+        friday1 = first_day_of_month_datestamp - datetime.timedelta(first_weekday_of_month - 3)
         if datetime.date.timetuple(friday1)[1] < month:
             friday1 = friday1 + datetime.timedelta(7)
-        friday1 = friday1 + datetime.timedelta(7)
-    elif first_weekday_of_month < 4:
-        friday1 = first_day_of_month_datestamp + datetime.timedelta(4 - first_weekday_of_month)
-        friday1 = friday1 + datetime.timedelta(7)
+        friday1 = friday1 + datetime.timedelta(14)
+    elif first_weekday_of_month < 3:
+        friday1 = first_day_of_month_datestamp + datetime.timedelta(3 - first_weekday_of_month)
+        friday1 = friday1 + datetime.timedelta(14)
 
 
     datestamp = '/'.join([str(friday1).split('-')[1],

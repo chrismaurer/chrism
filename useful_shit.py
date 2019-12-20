@@ -45,7 +45,7 @@ while True:
    time.sleep(360)
 
 python
-f = open(r'/var/log/debesys/OC_ose.log-20190115-1547557201', 'r')
+f = open(r'/var/log/debesys/OC_ose.log-20191113-1573624801', 'r')
 all_uexids = []
 all_exids = []
 uexid_dups = []
@@ -57,7 +57,7 @@ exid_missing_idx = []
 for line in f.readlines():
    exid, uexid, exectype = None, None, None
    date = " ".join(line.split(" ")[0:1])
-   if date == "2019-03-14":
+   if date == "2019-11-06":
        if " exec_id=" in line and "PENDING" not in line and "OBDL" not in line:
            for elem in line.split(" "):
                if elem.startswith("exec_id"):
@@ -316,26 +316,36 @@ for line in f.readlines():
 f.close()
 
 python
-f = open(r'/var/log/debesys/OC_coinflex.log', 'r')
+f = open(r'/var/log/debesys/OC_ose.log-20191113-1573624801', 'r')
 for line in f.readlines():
-    ord_status, exch_ord_status = None, None
-    if "ExecutionReport" in line:
-        date = line.split(" ")[0]
-        if date == "2019-05-31":
-            for elem in line.split(" "):
-                if elem.startswith("ord_status="):
-                    ord_status = elem.split("=")[-1]
-                elif elem.startswith("secondary_order_id="):
-                    sec_order_id = elem.split("=")[-1]
-                elif elem.startswith("exch_ord_status="):
-                    exch_ord_status = elem.split("=")[-1]
-                elif elem.startswith("ord_type="):
-                    ord_type = elem.split("=")[-1]
-            if ord_status is not None and exch_ord_status is not None:
-                if "PENDING" not in ord_status:
-                    # if ord_status != exch_ord_status:
-                    if len(sec_order_id) > 8:
-                        print line
+    date, time, msgtype, exch_ord_status, exec_id, ord_status, ord_type, sec_order_id, trade_id = None, None, None, None, None, None, None, None, None
+    if "b0afe2e5-ec25-4ddd-9a4c-f4e2aab8d3c9" in line:
+        if any(msg in line for msg in ["ExecutionReport", "OrderFillUpdateResp", "TradeCaptureReport"]):
+            date = line.split(" ")[0]
+            time = line.split(" ")[1]
+            msgtype = line.split(" ")[11]
+            if date == "2019-11-06":
+                for elem in line.split(" "):
+                    if elem.startswith("ord_status="):
+                        ord_status = elem.split("=")[-1]
+                    elif elem.startswith("secondary_order_id="):
+                        sec_order_id = elem.split("=")[-1]
+                    elif elem.startswith("exch_ord_status="):
+                        exch_ord_status = elem.split("=")[-1]
+                    elif elem.startswith("ord_type="):
+                        ord_type = elem.split("=")[-1]
+                    elif elem.startswith("exec_id="):
+                        exec_id = elem.split("=")[-1]
+                    elif elem.startswith("trade_id="):
+                        trade_id = elem.split("=")[-1]
+                # if ord_status is not None and exch_ord_status is not None:
+                #     if "PENDING" not in ord_status:
+                #         if ord_status != exch_ord_status:
+                #         if len(sec_order_id) > 8:
+                if trade_id is not None:
+                    print "{0} {1} {2}, exch_ord_status: {3}, trade_id: {4}".format(date, time, msgtype, exch_ord_status, trade_id)
+                else:
+                    print "{0} {1} {2}, exch_ord_status: {3}, exec_id: {4}".format(date, time, msgtype, exch_ord_status, exec_id)
 
 f.close()
 
@@ -376,4 +386,27 @@ for market_name in list_of_markets:
             dictionary.update({'_'.join([schedule_type, schedule_data[-2]]): schedule_data[4] + ' @ ' + ':'.join([schedule_data[1], schedule_data[0]])})
             schedule_file.close()
     price_server_and_uploader_schedule[market_name] = dictionary
+
+for item in price_server_and_uploader_schedule:
+    table_row = []
+    table_row.append(item)
+    if 'ps_start' in price_server_and_uploader_schedule[item]:
+        table_row.append(price_server_and_uploader_schedule[item]['ps_start'])
+    else:
+        table_row.append("#")
+    if 'ps_stop' in price_server_and_uploader_schedule[item]:
+        table_row.append(price_server_and_uploader_schedule[item]['ps_stop'])
+    else:
+        table_row.append("#")
+    if 'pdsu_start' in price_server_and_uploader_schedule[item]:
+        table_row.append(price_server_and_uploader_schedule[item]['pdsu_start'])
+    else:
+        table_row.append("#")
+    if 'pdsu_stop' in price_server_and_uploader_schedule[item]:
+        table_row.append(price_server_and_uploader_schedule[item]['pdsu_stop'])
+    else:
+        table_row.append("#")
+    print table_row
+
+    print ','.join([price_server_and_uploader_schedule[item], price_server_and_uploader_schedule[item]['ps_start'], price_server_and_uploader_schedule[item]['ps_stop'], price_server_and_uploader_schedule[item]['pdsu_start'], price_server_and_uploader_schedule[item]['pdsu_stop']])
 
