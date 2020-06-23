@@ -22,19 +22,19 @@ soid = None
 
 ############################
 # update values below for your connection/account/user
-connection_id = 16738
-user_id = 9587
-account_id = 747
-account = "MaurerDC"
+account_id = 32017
+account = "cm-int-dev1"
+connection_id = 19078
+user_id = 5964
 ############################
 wait_topic = 'OR.OC.{}'.format(connection_id)
 
 quote_side_1=[
-       {'qty':10,'side':1,'price':28}, #21000
-       {'qty':10,'side':2,'price':29}  #21006
+       {'qty':1,'side':1,'price':21003},
+       {'qty':1,'side':2,'price':21004}
      ]
 attrs = {
-        'instrument_id':16023224954857019727, #MCHZ7
+        'instrument_id':2057683400770929841, #MCHZ7
         'quote_side':quote_side_1,
         'ord_type':enums.ORD_TYPE_LIMIT,
         'time_in_force':enums.TIME_IN_FORCE_DAY,
@@ -139,7 +139,7 @@ def SendQuoteReplace(submitter, attrs):
                {'qty':int(sell_qty),'side':2,'price':int(sell_prc)}  #orginal=32870
                  ]
     attrs = {
-                 'instrument_id':18340898110286919161, #MCHZ7
+                 'instrument_id':2057683400770929841, #MCHZ7
                  'quote_side':quote_side_1,
                  'ord_type':enums.ORD_TYPE_LIMIT,
                  'time_in_force':enums.TIME_IN_FORCE_DAY,

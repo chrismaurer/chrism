@@ -30,11 +30,11 @@ user_id = 5964
 wait_topic = 'OR.OC.{}'.format(connection_id)
 
 quote_side_1=[
-       {'qty':0,'side':1,'price':0},
-       {'qty':2,'side':2,'price':300}
+       {'qty':1,'side':1,'price':21001},
+       {'qty':1,'side':2,'price':21002}
      ]
 attrs = {
-        'instrument_id':10383660673729585205, #MCHX9
+        'instrument_id':2057683400770929841, #MCHZ7
         'quote_side':quote_side_1,
         'ord_type':enums.ORD_TYPE_LIMIT,
         'time_in_force':enums.TIME_IN_FORCE_DAY,
@@ -83,19 +83,18 @@ def RunTest():
 
 #########################################################################
 def SendNewQuote(submitter, attrs):
-
     global responses, soid
     quote_id = uuid.uuid4()
     SetQuoteId(attrs, quote_id)
     msg = dict_to_protobuf(attrs, NewQuote)
+    print '\nSent QuoteCancel {}\n'.format(quote_id, )  # submitter.send_topic)
+    # print '\nSent NewQuote {} on {}\n'.format(quote_id, )  # submitter.send_topic)
     print msg
-
     submitter.send(msg)
-    print '\nSent NewQuote {} on {}\n'.format(quote_id, submitter.send_topic)
 
  #Wait for a response
     try:
-        msgs = submitter.wait_for_response(Header.MSG_QUOTE_RESPONSE, wait_topic, timeout=120, exists=True)
+        msgs = submitter.wait_for_response(Header.MSG_QUOTE_RESPONSE, wait_topic, timeout=60, exists=True)
         print '\nQuoteResponse for new quote received:\n'
         responses = responses + submitter.order_responses[quote_id]
         soid = submitter.order_responses[quote_id][-1].order_response.secondary_order_id
@@ -110,7 +109,8 @@ def SendQuoteCancel(submitter, attrs):
     global responses
     quote_id = GetQuoteId(attrs)
     msg = dict_to_protobuf(attrs, QuoteCancel)
-    print '\nSent QuoteCancel {} on {}\n'.format(quote_id, submitter.send_topic)
+    print '\nSent QuoteCancel {}\n'.format(quote_id, )  # submitter.send_topic)
+    # print '\nSent QuoteCancel {} on {}\n'.format(quote_id, )  # submitter.send_topic)
     submitter.send(msg)
 
 # Wait for a response
@@ -139,7 +139,7 @@ def SendQuoteReplace(submitter, attrs):
                {'qty':int(sell_qty),'side':2,'price':int(sell_prc)}  #orginal=32870
                  ]
     attrs = {
-                 'instrument_id':10383660673729585205,
+                 'instrument_id':2057683400770929841, #MCHZ7
                  'quote_side':quote_side_1,
                  'ord_type':enums.ORD_TYPE_LIMIT,
                  'time_in_force':enums.TIME_IN_FORCE_DAY,
@@ -156,7 +156,8 @@ def SendQuoteReplace(submitter, attrs):
             }
 # Submit a replace quote
     msg = dict_to_protobuf(attrs, QuoteReplace)
-    print '\nSent QuoteReplace {} on {}\n'.format(quote_id, submitter.send_topic)
+    print '\nSent QuoteCancel {}\n'.format(quote_id, )  # submitter.send_topic)
+#    print '\nSent QuoteReplace {} on {}\n'.format(quote_id, )  # submitter.send_topic)
     print msg
     submitter.send(msg)
 
@@ -168,13 +169,13 @@ def SendQuoteReplace(submitter, attrs):
 
         soid = submitter.order_responses[quote_id][-1].order_response.secondary_order_id
         print MessageToString(submitter.order_responses[quote_id][-1].order_response)
-
+        
         return True
 
     except:
         print 'Did not receive a QuoteReplace QuoteResponse from the OC, make sure its up!!'
         return False
-
+    
 if __name__ == "__main__":
     import sys
     RunTest()

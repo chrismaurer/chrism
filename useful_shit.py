@@ -44,8 +44,40 @@ while True:
        pyscreenshot.grab_to_file(r"C:\tt\screenshot_end_subscribe_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
    time.sleep(360)
 
+
 python
-f = open(r'/var/log/debesys/OC_ose.log-20191113-1573624801', 'r')
+f = open(r'/var/log/debesys/OC_ose.log', 'r')
+all_client_ips = []
+for line in f.readlines():
+    exid, uexid, exectype, client_ip = None, None, None, None
+    date = " ".join(line.split(" ")[0:1])
+    if date == "2020-06-16":
+        if "MaurDC-Ko" in line and "SEGMENT" not in line and "Account.name" not in line and "CUSTOMER_DEFAULTS" not in line:
+            for elem in line.split(" "):
+                if elem.startswith("client_ip"):
+                    client_ip = elem.split("=")[-1].replace("\"", "")
+                    client_ip = client_ip.replace("\n", "")
+            if client_ip is None:
+                print "ERROR - client_ip MISSING: {}".format(line)
+            else:
+                if len(all_client_ips) == 0:
+                    all_client_ips.append(client_ip)
+                elif client_ip not in all_client_ips:
+                    print "ERROR - Mismatched client_ip {}".format(client_ip)
+                    all_client_ips.append(client_ip)
+
+if len(all_client_ips) > 1:
+    for client_ip in all_client_ips:
+        print client_ip
+
+f.close()
+
+
+
+
+
+python
+f = open(r'/var/log/debesys/OC_hkex.log', 'r')
 all_uexids = []
 all_exids = []
 uexid_dups = []
@@ -57,7 +89,7 @@ exid_missing_idx = []
 for line in f.readlines():
    exid, uexid, exectype = None, None, None
    date = " ".join(line.split(" ")[0:1])
-   if date == "2019-11-06":
+   if date == "2020-01-22":
        if " exec_id=" in line and "PENDING" not in line and "OBDL" not in line:
            for elem in line.split(" "):
                if elem.startswith("exec_id"):
@@ -122,10 +154,10 @@ for noexid_exectype in exid_missing_idx:
 
 f.close()
 exit()
-grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* exec_id="
-grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* unique_exec_id="
-grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* exec_id="
-grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log-20190115-1547557201 | grep -c "2019-01-15.*ExecutionReport.* exec_id=0"
+grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* unique_exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* exec_id=0"
 
 
 
@@ -316,36 +348,28 @@ for line in f.readlines():
 f.close()
 
 python
-f = open(r'/var/log/debesys/OC_ose.log-20191113-1573624801', 'r')
+nos_count = 0
+tcr_count = 0
+orders_list = []
+orders_list.append("73e5ea44-1073-4e80-b1ea-a314a0e2c125")
+f = open(r'/var/log/debesys/OC_ose.log', 'r')
 for line in f.readlines():
     date, time, msgtype, exch_ord_status, exec_id, ord_status, ord_type, sec_order_id, trade_id = None, None, None, None, None, None, None, None, None
-    if "b0afe2e5-ec25-4ddd-9a4c-f4e2aab8d3c9" in line:
-        if any(msg in line for msg in ["ExecutionReport", "OrderFillUpdateResp", "TradeCaptureReport"]):
-            date = line.split(" ")[0]
-            time = line.split(" ")[1]
-            msgtype = line.split(" ")[11]
-            if date == "2019-11-06":
-                for elem in line.split(" "):
-                    if elem.startswith("ord_status="):
-                        ord_status = elem.split("=")[-1]
-                    elif elem.startswith("secondary_order_id="):
-                        sec_order_id = elem.split("=")[-1]
-                    elif elem.startswith("exch_ord_status="):
-                        exch_ord_status = elem.split("=")[-1]
-                    elif elem.startswith("ord_type="):
-                        ord_type = elem.split("=")[-1]
-                    elif elem.startswith("exec_id="):
-                        exec_id = elem.split("=")[-1]
-                    elif elem.startswith("trade_id="):
-                        trade_id = elem.split("=")[-1]
-                # if ord_status is not None and exch_ord_status is not None:
-                #     if "PENDING" not in ord_status:
-                #         if ord_status != exch_ord_status:
-                #         if len(sec_order_id) > 8:
-                if trade_id is not None:
-                    print "{0} {1} {2}, exch_ord_status: {3}, trade_id: {4}".format(date, time, msgtype, exch_ord_status, trade_id)
-                else:
-                    print "{0} {1} {2}, exch_ord_status: {3}, exec_id: {4}".format(date, time, msgtype, exch_ord_status, exec_id)
+    for order_num in orders_list:
+        if order_num in line:
+            if any(msg in line for msg in ["NewOrderSingle", "TradeCaptureReport"]):
+                if "NewOrderSingle" in line:
+                    nos_count += 1
+                elif "TradeCaptureReport" in line:
+                    tcr_count += 1
+                date = line.split(" ")[0]
+                time = line.split(" ")[1]
+                msgtype = line.split(" ")[11]
+                if date == "2020-01-10":
+                    print line
+
+print "Total NewOrderSingles = {}".format(nos_count)
+print "Total TradeCaptureReports = {}".format(tcr_count)
 
 f.close()
 
