@@ -22,16 +22,16 @@ soid = None
 
 ############################
 # update values below for your connection/account/user
-connection_id = 16738
-user_id = 9587
-account_id = 747
-account = "MaurerDC"
+connection_id = 19080
+user_id = 5964
+account_id = 99073
+account = "cm-int-devp"
 ############################
 wait_topic = 'OR.OC.{}'.format(connection_id)
 
 quote_side_1=[
-       {'qty':25,'side':1,'price':30}, #21000
-       {'qty':1,'side':2,'price':31}  #21006
+       {'qty':1,'side':1,'price':21003}, #21000
+       {'qty':1,'side':2,'price':21004}  #21006
      ]
 attrs = {
         'instrument_id':7560150852431274216, #MCHZ7

@@ -14,10 +14,11 @@ from tt.pyrate.debesys.messaging import NewQuote
 load_lbm_config("/etc/debesys/lbm.conf")
 
 # Put your info here
-account_id = 747
-account = "MaurerDC"
-connection_id = 16710
-user_id = 9587
+connection_id = 19078
+user_id = 5964
+account_id = 32017
+account = "cm-int-dev"
+
 
 price = 22
 qty = 1
@@ -25,11 +26,11 @@ qty = 1
 # Construct the message
 quote_id = uuid.uuid4()
 quote_side_1 = [
-    {'qty': 1, 'side': 1, 'price': 22},  # 5100
-    {'qty': 1, 'side': 2, 'price': 22}  # 22100
+    {'qty':1,'side':1,'price':200.30},
+    {'qty':1,'side':2,'price':200.31}
 ]
 attrs = {
-    'instrument_id': 14812862346263533632,
+    'instrument_id': 12932967830139539957,
     'quote_side': quote_side_1,
     'market_id': enums.TT_MARKET_ID_HKEX,
     'connection_id': connection_id,

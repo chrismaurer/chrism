@@ -44,7 +44,6 @@ while True:
        pyscreenshot.grab_to_file(r"C:\tt\screenshot_end_subscribe_" + "-".join([str(time.localtime()[3]), str(time.localtime()[4]), str(time.localtime()[5])]) + ".png")
    time.sleep(360)
 
-
 python
 f = open(r'/var/log/debesys/OC_ose.log', 'r')
 all_client_ips = []
@@ -73,11 +72,27 @@ if len(all_client_ips) > 1:
 f.close()
 
 
+python
+f = open(r'/var/log/debesys/OC_hkex.log', 'r')
+f = open(r'/var/log/debesys/OC_ose.log', 'r')
+for line in f.readlines():
+    if '8319a0cf-af0a-4b86-9f76-e3217a58ebf0' in line:
+        for elem in line.split(" "):
+            elem_list = elem.split("=")
+            try:
+                print("{} = {}".format(elem_list[0], elem_list[1]))
+            except IndexError:
+                print elem_list
+        print '- ' * 30
+
+f.close()
+exit()
+
 
 
 
 python
-f = open(r'/var/log/debesys/OC_hkex.log', 'r')
+f = open(r'/var/log/debesys/OC_ose.log', 'r')
 all_uexids = []
 all_exids = []
 uexid_dups = []
@@ -86,6 +101,100 @@ uexid_missing = []
 exid_missing = []
 uexid_missing_idx = []
 exid_missing_idx = []
+skip_lines = ("_inl.h", "MEMORY", "otcs", "otc(s)", "NUMA", "(keyed", "deleted order(s)", "deleted orders")
+for line in f.readlines():
+    exid, uexid, exectype, ordstatus, trdstatus, trdtype, transtype, ordid = None, None, None, None, None, None, None, None
+    date = " ".join(line.split(" ")[0:1])
+    if date == "2020-04-17":
+       if "2020-04-17 01:5" in line:
+           if any(msg in line for msg in ["ExecutionReport", "OrderFillUpdateResp", "TradeCaptureReport",
+                                          "OrderCancelReplaceRequest", "OrderCancelReject", "NewOrderSingle",
+                                          "OrderCancelRequest", "NewTradeCapture", "TradeReport"]):
+               if any(skip_line in line for skip_line in skip_lines):
+                   pass
+               else:
+                   if "PENDING" not in line and "OBDL" not in line:
+                       for elem in line.split(" "):
+                           if elem.startswith("exec_id"):
+                               exid = elem.split("=")[-1].replace("\"", "")
+                               exid = exid.replace("\n", "")
+                           if elem.startswith("unique_exec_id"):
+                               uexid = elem.split("=")[-1].replace("\"", "")
+                               uexid = uexid.replace("\n", "")
+                           if elem.startswith("exec_type"):
+                               exectype = elem.split("=")[-1].replace("\"", "")
+                               exectype = exectype.replace("\n", "")
+                           if elem.startswith("trd_type"):
+                               trdtype = elem.split("=")[-1].replace("\"", "")
+                               trdtype = trdtype.replace("\n", "")
+                           if elem.startswith("ord_status"):
+                               ordstatus = elem.split("=")[-1].replace("\"", "")
+                               ordstatus = ordstatus.replace("\n", "")
+                           if elem.startswith("trans_type"):
+                               transtype = elem.split("=")[-1].replace("\"", "")
+                               transtype = transtype.replace("\n", "")
+                           if elem.startswith("trd_status"):
+                               trdstatus = elem.split("=")[-1].replace("\"", "")
+                               trdstatus = trdstatus.replace("\n", "")
+                           if elem.startswith("secondary_order_id"):
+                               ordid = elem.split("=")[-1].replace("\"", "")
+                               ordid = ordid.replace("\n", "")
+                       if trdtype is None:
+                           trdtype = "None"
+                       if trdstatus is None:
+                           trdstatus = "None"
+                       if transtype is None:
+                           transtype = "None"
+                       transaction_type = exectype if exectype is not None else trdtype
+                       if exectype is None and trdtype == "None":
+                           transaction_type = transtype
+                       status = ordstatus if ordstatus is not None else trdstatus
+                       if " exec_id=" in line and " unique_exec_id=" not in line:
+                           uexid_missing.append(" + ".join([transaction_type, status]))
+                           if " + ".join([transaction_type, status]) not in uexid_missing_idx:
+                               uexid_missing_idx.append(" + ".join([transaction_type, status]))
+                       if " unique_exec_id=" in line and " exec_id=" not in line:
+                           exid_missing.append(" + ".join([transaction_type, status]))
+                           if " + ".join([transaction_type, status]) not in uexid_missing_idx:
+                               exid_missing_idx.append(" + ".join([transaction_type, status]))
+                       if uexid is not None:
+                           if uexid not in all_uexids:
+                               all_uexids.append(uexid)
+                           else:
+                               if uexid not in uexid_dups:
+                                   uexid_dups.append(uexid)
+                       else:
+                           uexid_missing.append(" + ".join([transaction_type, status]))
+                           if " + ".join([transaction_type, status]) not in uexid_missing_idx:
+                               uexid_missing_idx.append(" + ".join([transaction_type, status]))
+                       if exid is not None:
+                           if exid not in all_exids:
+                               all_exids.append(exid)
+                           else:
+                               if exid not in exid_dups:
+                                   exid_dups.append(exid)
+                       else:
+                           exid_missing.append(" + ".join([transaction_type, status]))
+                           if " + ".join([transaction_type, status]) not in exid_missing_idx:
+                               exid_missing_idx.append(" + ".join([transaction_type, status]))
+                       print ordid
+
+
+
+
+
+
+python
+f = open(r'/var/log/debesys/OC_ose.log', 'r')
+all_uexids = []
+all_exids = []
+uexid_dups = []
+exid_dups = []
+uexid_missing = []
+exid_missing = []
+uexid_missing_idx = []
+exid_missing_idx = []
+skip_lines = ("_inl.h", "MEMORY", "otcs", "otc(s)", "NUMA", "(keyed", "deleted order(s)", "deleted orders")
 for line in f.readlines():
    exid, uexid, exectype = None, None, None
    date = " ".join(line.split(" ")[0:1])
@@ -154,10 +263,15 @@ for noexid_exectype in exid_missing_idx:
 
 f.close()
 exit()
-grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* exec_id="
-grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* unique_exec_id="
-grep -v -e MEMORY -e PENDING /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* exec_id="
-grep -v -e MEMORY -e PENDING /var/log/debesys/OC_hkex.log | grep -c "2020-01-22.*ExecutionReport.* exec_id=0"
+grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_ose.log | grep -c "2020-04-15.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_ose.log | grep -c "2020-04-15.*ExecutionReport.* unique_exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log | grep -c "2020-04-15.*ExecutionReport.* exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log| grep -c "2020-04-15.*ExecutionReport.* exec_id=0"
+
+grep -v -e MEMORY -e PENDING -e unique_exec_id /var/log/debesys/OC_ose.log | grep -c "2020-04-15.*TradeCaptureReport.* exec_id="
+grep -v -e MEMORY -e PENDING -e exec_id /var/log/debesys/OC_ose.log | grep -c "2020-04-15.*TradeCaptureReport.* unique_exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log | grep -c "2020-04-15.*TradeCaptureReport.* exec_id="
+grep -v -e MEMORY -e PENDING /var/log/debesys/OC_ose.log| grep -c "2020-04-15.*TradeCaptureReport.* exec_id=0"
 
 
 
@@ -373,6 +487,57 @@ print "Total TradeCaptureReports = {}".format(tcr_count)
 
 f.close()
 
+python
+f = open(r'/var/log/debesys/OC_ose.log-20191113-1573624801', 'r')
+for line in f.readlines():
+    date, time, msgtype, exch_ord_status, exec_id, ord_status, ord_type, sec_order_id, trade_id = None, None, None, None, None, None, None, None, None
+    if "b0afe2e5-ec25-4ddd-9a4c-f4e2aab8d3c9" in line:
+        if any(msg in line for msg in ["ExecutionReport", "OrderFillUpdateResp", "TradeCaptureReport"]):
+            date = line.split(" ")[0]
+            time = line.split(" ")[1]
+            msgtype = line.split(" ")[11]
+            if date == "2019-11-06":
+                for elem in line.split(" "):
+                    if elem.startswith("ord_status="):
+                        ord_status = elem.split("=")[-1]
+                    elif elem.startswith("secondary_order_id="):
+                        sec_order_id = elem.split("=")[-1]
+                    elif elem.startswith("exch_ord_status="):
+                        exch_ord_status = elem.split("=")[-1]
+                    elif elem.startswith("ord_type="):
+                        ord_type = elem.split("=")[-1]
+                    elif elem.startswith("exec_id="):
+                        exec_id = elem.split("=")[-1]
+                    elif elem.startswith("trade_id="):
+                        trade_id = elem.split("=")[-1]
+                # if ord_status is not None and exch_ord_status is not None:
+                #     if "PENDING" not in ord_status:
+                #         if ord_status != exch_ord_status:
+                #         if len(sec_order_id) > 8:
+                if trade_id is not None:
+                    print "{0} {1} {2}, exch_ord_status: {3}, trade_id: {4}".format(date, time, msgtype, exch_ord_status, trade_id)
+                else:
+                    print "{0} {1} {2}, exch_ord_status: {3}, exec_id: {4}".format(date, time, msgtype, exch_ord_status, exec_id)
+
+f.close()
+print 'Number of orders with \"removed from orderbook\" message:', len(removed_from_orderbook_orders)
+print 'Number of orders filled:', len(filled_orders)
+print 'The following filled orders do not have the \"removed from orderbook\" message:'
+for fill_order in filled_orders:
+    if fill_order not in removed_from_orderbook_orders:
+        print fill_order
+
+print 'Number of orders canceled:', len(canceled_orders)
+print 'The following canceled orders do not have the \"removed from orderbook\" message:'
+for cancel_order in canceled_orders:
+    if cancel_order not in removed_from_orderbook_orders:
+        print cancel_order
+
+print 'The following orders have the \"removed from orderbook\" message but their status seems inconsistent:'
+for removed_from_orderbook_order in removed_from_orderbook_orders:
+    if removed_from_orderbook_order not in canceled_orders and removed_from_orderbook_order not in filled_orders:
+        print removed_from_orderbook_order
+
 import os
 list_of_markets = []
 list_of_psdu_enabled_markets = []
@@ -434,3 +599,70 @@ for item in price_server_and_uploader_schedule:
 
     print ','.join([price_server_and_uploader_schedule[item], price_server_and_uploader_schedule[item]['ps_start'], price_server_and_uploader_schedule[item]['ps_stop'], price_server_and_uploader_schedule[item]['pdsu_start'], price_server_and_uploader_schedule[item]['pdsu_stop']])
 
+
+#####################################################
+
+
+python
+from datetime import date, datetime
+incorrect_clordids = []
+incorrect_datetimes = []
+counter = 0
+f = open(r'/var/log/debesys/OC_sgx.log', 'r')
+for line in f.readlines():
+    date, logtime, exch_ord_status, exec_id, exec_type, ord_status, order_id, ord_type, secondary_order_id, secondary_cl_ord_id, trade_id = None, None, None, None, None, None, None, None, None, None, None
+    if any(msg in line for msg in ["secondary_cl_ord_id", ]):
+        try:
+            date = line.split(" ")[0]
+            logtime = line.split(" ")[1]
+            msgtype = line.split(" ")[11]
+            if date == "2020-04-03" and "ERROR" not in line:
+                for elem in line.split(" "):
+                    if elem.startswith("ord_status="):
+                        ord_status = elem.split("=")[-1]
+                    elif elem.startswith("secondary_order_id="):
+                        secondary_order_id = elem.split("=")[-1]
+                    elif elem.startswith("secondary_cl_ord_id="):
+                        secondary_cl_ord_id = elem.split("=")[-1]
+                    elif elem.startswith("exch_ord_status="):
+                        exch_ord_status = elem.split("=")[-1]
+                    elif elem.startswith("ord_type="):
+                        ord_type = elem.split("=")[-1]
+                    elif elem.startswith("exec_id="):
+                        exec_id = elem.split("=")[-1]
+                    elif elem.startswith("exec_type="):
+                        exec_type = elem.split("=")[-1]
+                    elif elem.startswith("order_id="):
+                        order_id = elem.split("=")[-1]
+                    elif elem.startswith("trade_id="):
+                        trade_id = elem.split("=")[-1]
+                if len(secondary_cl_ord_id.replace("\"", "")) != 13:
+                    counter =+ 1
+                    incorrect_clordids.append(": ".join([order_id, secondary_cl_ord_id]))
+        except IndexError:
+            pass
+
+f.close()
+print "Found {} orders".format(counter)
+print incorrect_clordids
+
+
+
+
+print 'Number of orders with \"removed from orderbook\" message:', len(removed_from_orderbook_orders)
+print 'Number of orders filled:', len(filled_orders)
+print 'The following filled orders do not have the \"removed from orderbook\" message:'
+for fill_order in filled_orders:
+    if fill_order not in removed_from_orderbook_orders:
+        print fill_order
+
+print 'Number of orders canceled:', len(canceled_orders)
+print 'The following canceled orders do not have the \"removed from orderbook\" message:'
+for cancel_order in canceled_orders:
+    if cancel_order not in removed_from_orderbook_orders:
+        print cancel_order
+
+print 'The following orders have the \"removed from orderbook\" message but their status seems inconsistent:'
+for removed_from_orderbook_order in removed_from_orderbook_orders:
+    if removed_from_orderbook_order not in canceled_orders and removed_from_orderbook_order not in filled_orders:
+        print removed_from_orderbook_order
