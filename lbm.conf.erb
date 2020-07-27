@@ -1,0 +1,1873 @@
+<um-configuration version="1.0">
+    <templates>
+    <% @peer_name = nil %>
+    <% if @peer_information %>
+      <% @peer_information.sort.map do |peer_name, peer_data| %>
+        <% if peer_data['ec2_node'] -%>
+        <template name="<%= peer_data["endpoint_name"] %>-template">
+            <options type="context">
+              <!-- The line below clears out any previous definitions of resolver_unicast_daemon -->
+              <option default-value="0.0.0.0:0" name="resolver_unicast_daemon"/>
+              <option default-value="<%= peer_data['resolver_ip_first_dc'] %>:<%= peer_data['resolver_port_first_dc'] %>" name="resolver_unicast_daemon"/>
+              <option default-value="<%= peer_data['resolver_ip_second_dc'] %>:<%= peer_data['resolver_port_second_dc'] %>" name="resolver_unicast_daemon"/>
+              <option default-value="<%= peer_data['port_low'] %>" name="resolver_unicast_port_low"/>
+              <option default-value="<%= peer_data['port_high'] %>" name="resolver_unicast_port_high"/>
+              <option default-value="<%= node['lbm']['interface'] %>" name="default_interface"/>
+              <option default-value="<%= node['lbm']['interface'] %>" name="resolver_unicast_interface"/>
+
+              <!-- Maximum advertisement rate during the sustaining phase of topic advertisement -->
+              <option default-value="100000" name="resolver_sustain_advertisement_bps" />
+              <!-- Maximum query rate during the sustaining phase of topic querying -->
+              <option default-value="100000" name="resolver_sustain_query_bps" />
+              <!-- Maximum query rate during wildcard receiver topic querying -->
+              <option default-value="100000" name="resolver_wildcard_query_bps" />
+            </options>
+            <options type="source">
+              <option default-value="lbtru" name="transport"/>
+              <option default-value="<%= node['lbm']['interface'] %>" name="transport_lbtru_interface"/>
+
+              <!-- how long should sustained tr phase last for sources in milliseconds -->
+              <option default-value="300" name="resolver_advertisement_minimum_sustain_duration" />
+              <!-- how often to send TIRs during sustained tr phase in seconds -->
+              <option default-value="5000" name="resolver_advertisement_sustain_interval"/>
+              <!-- Allows you to disable the normal immediate response to queries and wildcard queries. Sources normally send -->
+              <!-- topic advertisements (TIR) immediately in response to topic queries (TQR) for a local topic or wildcard queries -->
+              <!-- (WC-TQR) with a pattern that matches a local topic. If you configure sources to delay sending advertisements, -->
+              <!-- UM delays advertisements by the limits defined by the advertisement rate limiter options, resolver_∗_bps -->
+              <!-- and resolver_∗_per_second -->
+              <option default-value="0" name="resolver_advertisement_send_immediate_response"/>
+              <!-- Send TSNIs to keep tcp subscription transport sessions alive -->
+              <option default-value="15000" name="transport_topic_sequence_number_info_interval"/>
+              <option default-value="0" name="transport_topic_sequence_number_info_active_threshold"/>
+            </options>
+            <options type="receiver">
+              <option default-value="<%= node['lbm']['interface'] %>" name="transport_lbtru_interface"/>
+
+              <!-- how long should sustained tr phase last for receivers -->
+              <option default-value="300" name="resolver_query_minimum_sustain_duration" />
+              <!-- how often to send TQRs during sustained tr phase in seconds -->
+              <option default-value="5000" name="resolver_query_sustain_interval" />
+              <!-- The maximum time that a TCP session may be quiescent before it is deleted and -->
+              <!-- an EOS event is delivered for all topics using this transport session -->
+              <option default-value="60000" name="transport_tcp_activity_timeout"/>
+              <option default-value="60000" name="transport_lbtru_activity_timeout"/>
+            </options>
+        </template>
+        <% elsif node['tnwgd']['dedicated_endpoint'] == peer_data['endpoint_name'] and node.run_list.to_s.include?("tnwgd") and
+                 (node.functional_environment.end_with?('sim') or node.functional_environment.include?('ext-uat-cert') or
+                  node.functional_environment.end_with?('live') or node.functional_environment.end_with?('delayed')) %>
+        <template name="<%= peer_data["endpoint_name"].gsub('.','_') %>-template">
+            <options type="context">
+              <option default-value="0.0.0.0:0" name="resolver_unicast_daemon"/>
+              <option default-value="<%= node['tnwgd']['vpn_ipaddress'] %>:15390" name="resolver_unicast_daemon"/>
+              <option default-value="17601" name="resolver_unicast_port_low"/>
+              <option default-value="17700" name="resolver_unicast_port_high"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="default_interface"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="resolver_unicast_interface"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="request_tcp_interface"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="response_tcp_interface"/>
+              <option default-value="14570" name="request_tcp_port_low"/>
+              <option default-value="14870" name="request_tcp_port_high"/>
+            </options>
+            <options type="source">
+              <option default-value="lbtru" name="transport"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="transport_lbtru_interface"/>
+            </options>
+            <options type="receiver">
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="transport_lbtru_interface"/>
+            </options>
+        </template>
+        <% elsif peer_name.include?("dedicated_for") and peer_data["vpn"]  %>
+        <template name="<%= peer_data["endpoint_name"].gsub('.','_') %>-template">
+            <options type="context">
+              <option default-value="0.0.0.0:0" name="resolver_unicast_daemon"/>
+              <option default-value="<%= peer_data["lbmrd_ip"] %>:<%= peer_data["lbmrd_port"] %>" name="resolver_unicast_daemon"/>
+              <option default-value="17601" name="resolver_unicast_port_low"/>
+              <option default-value="17700" name="resolver_unicast_port_high"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="default_interface"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="resolver_unicast_interface"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="request_tcp_interface"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="response_tcp_interface"/>
+              <option default-value="14570" name="request_tcp_port_low"/>
+              <option default-value="14870" name="request_tcp_port_high"/>
+              <option default-value="1" name="transport_lbtru_maximum_ports"/>
+              <option default-value="<%= peer_data["context_lbtru_low"] %>" name="transport_lbtru_port_low"/>
+              <option default-value="<%= peer_data["context_lbtru_high"] %>" name="transport_lbtru_port_high"/>
+            </options>
+            <options type="source">
+              <option default-value="lbtru" name="transport"/>
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="transport_lbtru_interface"/>
+              <option default-value="inclusion" name="transport_source_side_filtering_behavior"/>
+            </options>
+            <options type="receiver">
+              <option default-value="&quot;<%= node['lbm']['vpn_interface'] %>&quot;" name="transport_lbtru_interface"/>
+              <option default-value="<%= peer_data["receiver_lbtru_low"] %>" name="transport_lbtru_port_low"/>
+              <option default-value="<%= peer_data["receiver_lbtru_high"] %>" name="transport_lbtru_port_high"/>
+            </options>
+        </template>
+        <% elsif peer_name.include?("dedicated_for") %>
+        <template name="<%= peer_data["endpoint_name"].gsub('.','_') %>-template">
+            <options type="context">
+              <option default-value="0.0.0.0:0" name="resolver_unicast_daemon"/>
+              <option default-value="<%= peer_data['lbmrd_ip'] %>:<%= peer_data["lbmrd_port"] %>" name="resolver_unicast_daemon"/>
+              <option default-value="17601" name="resolver_unicast_port_low"/>
+              <option default-value="17900" name="resolver_unicast_port_high"/>
+              <option default-value="&quot;<%= node['data_center']['trade_vlan_interface'] %>&quot;" name="default_interface"/>
+              <option default-value="&quot;<%= node['data_center']['trade_vlan_interface'] %>&quot;" name="resolver_unicast_interface"/>
+              <option default-value="&quot;<%= node['data_center']['trade_vlan_interface'] %>&quot;" name="request_tcp_interface"/>
+              <option default-value="&quot;<%= node['data_center']['trade_vlan_interface'] %>&quot;" name="response_tcp_interface"/>
+              <option default-value="14570" name="request_tcp_port_low"/>
+              <option default-value="14870" name="request_tcp_port_high"/>
+              <option default-value="1" name="transport_lbtru_maximum_ports"/>
+              <option default-value="<%= peer_data["context_lbtru_low"] %>" name="transport_lbtru_port_low"/>
+              <option default-value="<%= peer_data["context_lbtru_high"] %>" name="transport_lbtru_port_high"/>
+            </options>
+            <options type="source">
+              <option default-value="lbtru" name="transport"/>
+              <option default-value="&quot;<%= node['data_center']['trade_vlan_interface'] %>&quot;" name="transport_lbtru_interface"/>
+              <option default-value="inclusion" name="transport_source_side_filtering_behavior"/>
+            </options>
+            <options type="receiver">
+              <option default-value="&quot;<%= node['data_center']['trade_vlan_interface'] %>&quot;" name="transport_lbtru_interface"/>
+              <option default-value="<%= peer_data["receiver_lbtru_low"] %>" name="transport_lbtru_port_low"/>
+              <option default-value="<%= peer_data["receiver_lbtru_high"] %>" name="transport_lbtru_port_high"/>
+            </options>
+        </template>
+        <% elsif node['tnwgd']['dedicated_endpoint'] == peer_data['endpoint_name'] and node.run_list.to_s.include?("tnwgd") %>
+        <template name="<%= peer_data["endpoint_name"].gsub('.','_') %>-template">
+            <options type="context">
+              <option default-value="<%= peer_data['resolver_multicast_address'] %>" name="resolver_multicast_address"/>
+              <option default-value="<%= peer_data['multicast_address_low'] %>" name="transport_lbtrm_multicast_address_low"/>
+              <option default-value="<%= peer_data['multicast_address_high'] %>" name="transport_lbtrm_multicast_address_high"/>
+            </options>
+        </template>
+        <% elsif node['tnwgd']['dedicated_endpoint'] == peer_data['endpoint_name'] %>
+          <% @peer_name = peer_name %>
+        <% else %>
+        <template name="<%= peer_data["endpoint_name"] %>-template">
+            <options type="context">
+              <option default-value="<%= peer_data['resolver_multicast_address'] %>" name="resolver_multicast_address"/>
+            </options>
+            <options type="source">
+              <option default-value="lbtru" name="transport"/>
+              <option default-value="<%= node['lbm']['interface'] %>" name="transport_lbtru_interface"/>
+            </options>
+            <options type="receiver">
+              <option default-value="20000" name="transport_lbtru_activity_timeout"/>
+            </options>
+        </template>
+        <% end %>
+      <% end %>
+    <% end %>
+        <template name="CommonStuff">
+            <options type="context">
+<% if node.functional_environment.start_with?('int-dev') %>
+                <!-- Set a default ump session id for apps that forget to set it, to limit generating new registrations -->
+                <option default-value="666" name="ume_session_id"/>
+<% end %>
+                <!-- Define interfaces for LBTRU, LBTRM and req/resp -->
+                <option default-value="<%= @resolver_multicast_interface %>" name="default_interface"/>
+                <option default-value="<%= @resolver_multicast_interface %>" name="resolver_multicast_interface"/>
+                <option default-value="<%= @resolver_multicast_interface %>" name="request_tcp_interface"/>
+                <option default-value="<%= @resolver_multicast_interface %>" name="response_tcp_interface"/>
+              <% if @peer_name %>
+                <option default-value="<%= @peer_information[@peer_name]['resolver_multicast_address'] %>" name="resolver_multicast_address"/>
+                <option default-value="<%= @peer_information[@peer_name]['multicast_address_low'] %>" name="transport_lbtrm_multicast_address_low"/>
+                <option default-value="<%= @peer_information[@peer_name]['multicast_address_high'] %>" name="transport_lbtrm_multicast_address_high"/>
+              <% else %>
+                <!-- Define resolver multicast address -->
+                <option default-value="<%= @resolver_multicast_address %>" name="resolver_multicast_address"/>
+
+                <!-- Define multicast range for LBTRM transport used by apps to communicate within DC -->
+                <option default-value="<%= @multicast_address_low %>" name="transport_lbtrm_multicast_address_low"/>
+                <option default-value="<%= @multicast_address_high %>" name="transport_lbtrm_multicast_address_high"/>
+              <% end %>
+
+                <!-- Define port ranges for various transports. -->
+		<option default-value="24000" name="transport_lbtrm_source_port_low"/>
+                <option default-value="26000" name="transport_lbtrm_source_port_high"/>
+
+                <option default-value="14100" name="transport_tcp_port_low"/>
+                <option default-value="14199" name="transport_tcp_port_high"/>
+
+		<option default-value="14200" name="transport_lbtru_port_low"/>
+		<option default-value="15199" name="transport_lbtru_port_high"/>
+
+                <option default-value="14300" name="request_tcp_port_low"/>
+                <option default-value="14399" name="request_tcp_port_high"/>
+
+                <!-- Define maximum number of ports to be used by transport per app -->
+		<option default-value="10" name="transport_tcp_maximum_ports"/>
+            	<option default-value="10" name="transport_lbtru_maximum_ports"/>
+
+		<!-- Define sokcet buffer limits for various transports. -->
+                <option default-value="8388608" name="resolver_multicast_receiver_socket_buffer"/>
+                <option default-value="8388608" name="resolver_unicast_receiver_socket_buffer"/>
+                <option default-value="8388608" name="transport_lbtrm_receiver_socket_buffer"/>
+                <option default-value="8388608" name="transport_lbtru_receiver_socket_buffer"/>
+                <!-- increasing from 2 to 20 seconds to avoid extraneous TCP socket creation/teardown overhead -->
+                <option default-value="20000" name="response_tcp_deletion_timeout"/>
+
+                <option default-value="0" name="resolver_domain_id_active_propagation_timeout"/>
+
+		<!-- Set rate limits for various transports. -->
+		<option default-value="10000000000" name="transport_lbtru_data_rate_limit"/>
+		<option default-value="52428800" name="transport_lbtru_retransmit_rate_limit"/>
+		<option default-value="10000000000" name="transport_lbtrm_data_rate_limit"/>
+                <option default-value="52428800" name="transport_lbtrm_retransmit_rate_limit"/>
+                <!-- lower max data gram size from 8192. This wil prevent LBM from sending jumbo packets.  Needs to be done for all transports -->
+                <option default-value="<%= node['lbm']['tr_mtu'] %>" name="resolver_datagram_max_size"/>
+                <option default-value="<%= node['lbm']['mtu'] %>" name="transport_lbtrm_datagram_max_size"/>
+                <option default-value="<%= node['lbm']['mtu'] %>" name="transport_lbtru_datagram_max_size"/>
+                <option default-value="<%= node['lbm']['mtu'] %>" name="transport_tcp_datagram_max_size"/>
+                <option default-value="64" name="resolver_multicast_ttl"/>
+
+                <!-- Maximum advertisement rate during the sustaining phase of topic advertisement -->
+                <option default-value="100000" name="resolver_sustain_advertisement_bps" />
+                <!-- Maximum query rate during the sustaining phase of topic querying -->
+                <option default-value="100000" name="resolver_sustain_query_bps" />
+                <!-- Maximum query rate during wildcard receiver topic querying -->
+                <option default-value="100000" name="resolver_wildcard_query_bps" />
+
+         <% if !@peer_information.empty? -%>
+          <!-- We dont want DRO to pick up MIM traffic so we disable it -->
+          <option default-value="0.0.0.0" name="mim_incoming_address"/>
+          <% else -%>
+         <!-- enable mim otherwise -->
+         <option default-value="<%= @mim_address %>" name="mim_address"/>
+         <option default-value="14401" name="mim_destination_port"/>
+         <% end -%>
+            </options>
+
+            <options type="source">
+                <option default-value="<%= @resolver_multicast_interface %>" name="transport_tcp_interface"/>
+                <option default-value="<%= @resolver_multicast_interface %>" name="transport_lbtru_interface"/>
+                <option default-value="1" name="late_join"/>
+                <!-- This is set to 1 for non-ump sources so that lbm doesnt preallocate memory unnecessarily -->
+                <!-- especially needed for ase since it creates lots of non-ump sources -->
+                <!-- It is being set under each ump source topic to a higher value -->
+                <option default-value="1" name="ume_flight_size"/>
+                <!-- UM deletes a message from the retained messages buffer if it is older than this option -->
+                <!-- and the size of the buffer exceeds the retransmit_retention_size_threshold -->
+                <option default-value="5" name="retransmit_retention_age_threshold"/>
+                <!-- Setting to 1MB to be used with otr -->
+                <option default-value="1048576" name="retransmit_retention_size_threshold"/>
+                <!-- when store declares source to be inactive (default is 0, we set it here to be clear) -->
+                <option default-value="0" name="ume_activity_timeout"/>
+                <!-- when source declares store to be inactive -->
+                <option default-value="20000" name="ume_store_activity_timeout"/>
+                <!-- time between subsequent store registration by source. -->
+                <option default-value="3000" name="ume_registration_interval"/>
+                <!-- Informatica recommends using the highest sequence number returned by a UMP store during a source or receiver registration callback -->
+                <option default-value="highest" name="ume_consensus_sequence_number_behavior"/>
+                <!-- The interval between the sending of SRI packets by a source. SRI - Source Registration Information (SRI) record -->
+                <option default-value="500" name="ume_sri_inter_sri_interval"/>
+                <!-- The maximum number of SRI packets sent by a source after it has re-registered with a store. -->
+                <option default-value="20" name="ume_sri_max_number_of_sri_per_update"/>
+              	<option default-value="5000" name="transport_lbtru_sm_maximum_interval"/>
+                <!-- When a source is terminated, this will cause an end of transport TR message to be sent on that session helping to prevent ghost proxies. -->
+                <option default-value="1" name="resolver_send_final_advertisements"/>
+
+                <!-- how long should sustained tr phase last for sources in milliseconds -->
+                <option default-value="300" name="resolver_advertisement_minimum_sustain_duration" />
+                <!-- how often to send TIRs during sustained tr phase in seconds -->
+                <option default-value="5000" name="resolver_advertisement_sustain_interval"/>
+                <!-- Allows you to disable the normal immediate response to queries and wildcard queries. Sources normally send -->
+                <!-- topic advertisements (TIR) immediately in response to topic queries (TQR) for a local topic or wildcard queries -->
+                <!-- (WC-TQR) with a pattern that matches a local topic. If you configure sources to delay sending advertisements, -->
+                <!-- UM delays advertisements by the limits defined by the advertisement rate limiter options, resolver_∗_bps -->
+                <!-- and resolver_∗_per_second -->
+                <option default-value="0" name="resolver_advertisement_send_immediate_response"/>
+                <!-- Send TSNIs to keep tcp subscription transport sessions alive -->
+                <option default-value="15000" name="transport_topic_sequence_number_info_interval"/>
+                <option default-value="0" name="transport_topic_sequence_number_info_active_threshold"/>
+                <!-- dont ask receivers to send ume ACKs to persisted sources, receivers will still send ume ACKs to UMPs -->
+                <option default-value="0" name="ume_confirmed_delivery_notification"/>
+                <option default-value="20000" name="ume_message_stability_timeout"/>
+                <!-- use a datacenter specific multicast destination port -->
+                <option default-value="<%= @lbm_mcst_dst_port %>" name="transport_lbtrm_destination_port"/>
+            </options>
+
+            <options type="receiver">
+                <option default-value="<%= @resolver_multicast_interface %>" name="transport_tcp_interface"/>
+                <option default-value="<%= @resolver_multicast_interface %>" name="transport_lbtru_interface"/>
+                <option default-value="0" name="use_late_join"/>
+                <!-- Informatica recommends using the highest sequence number returned by a UMP store during a source or receiver registration callback -->
+                <option default-value="highest" name="ume_consensus_sequence_number_behavior"/>
+                <option default-value="0" name="ume_use_store"/>
+                <option default-value="1" name="use_otr"/>
+                <!-- How long to wait before requesting missing data via otr, 2 seconds -->
+                <option default-value="2000" name="otr_request_initial_delay"/>
+                <!-- How long to wait until delivering unrecoverable loss message to receiver, and delivering any queued up data before that sequence -->
+                <option default-value="10000" name="otr_request_message_timeout"/>
+                <!-- How many requests a receiver will send to UMP at a time to recover data -->
+                <option default-value="24" name="retransmit_request_outstanding_maximum" />
+                <!-- The maximum time from when a receiver first sends a retransmission request to when the receiver gives up -->
+                <!-- on receiving the retransmitted message and reports loss. (milliseconds) -->
+                <option default-value="300000" name="retransmit_request_message_timeout" />
+                <!-- This is to get rid of the log message 'Reducing rx_cache_proximity [4294967295] to half of otr_message_caching_threshold [10000]' -->
+                <option default-value="5000" name="retransmit_message_caching_proximity" />
+
+		<!-- Receiver level setting defines ports on which receiver listens on. -->
+		<option default-value="31001" name="transport_lbtru_port_low"/>
+		<option default-value="32000" name="transport_lbtru_port_high"/>
+
+              	<option default-value="20000" name="transport_lbtru_activity_timeout"/>
+
+                <!-- how long should sustained tr phase last for receivers -->
+                <option default-value="300" name="resolver_query_minimum_sustain_duration" />
+                <!-- how often to send TQRs during sustained tr phase in seconds -->
+                <option default-value="5000" name="resolver_query_sustain_interval" />
+                <!-- The maximum time that a TCP session may be quiescent before it is deleted and -->
+                <!-- an EOS event is delivered for all topics using this transport session -->
+                <option default-value="60000" name="transport_tcp_activity_timeout"/>
+                <option default-value="0" name="ume_use_ack_batching"/>
+              </options>
+        </template>
+
+        <template name="SendViaMulticast">
+            <options type="source">
+                <option default-value="LBTRM" name="transport"/>
+                <option default-value="1" name="implicit_batching_minimum_length"/>
+            </options>
+            <options type="receiver">
+            </options>
+        </template>
+
+        <template name="SendViaTCP">
+            <options type="source">
+                <option default-value="TCP" name="transport"/>
+                <option default-value="1" name="implicit_batching_minimum_length"/>
+                <option default-value="<%= @transport_tcp_interface %>" name="transport_tcp_interface"/>
+            </options>
+            <options type="receiver">
+                <option default-value="<%= @transport_tcp_interface %>" name="transport_tcp_interface"/>
+            </options>
+        </template>
+
+        <template name="UseUMP">
+            <options type="receiver">
+                <option default-value="1" name="ume_use_store"/>
+                <!-- This controls how long UMP will remember a receiver before deleting state for it, 14 days in milliseconds -->
+                <option default-value="1209600000" name="ume_state_lifetime"/>
+                <option default-value="3000" name="ume_registration_interval"/>
+                <!-- How many SRI requests will be sent by receivers to persisted sources, by default they are sent every second -->
+                <!-- SRIs will only be sent to persisted sources, receivers know which sources are persisted from TIRs -->
+                <option default-value="600" name="ume_sri_request_maximum"/>
+                <!-- The interval between loss detection and transmission of the first NAK -->
+                <option default-value="2000" name="transport_lbtrm_nak_initial_backoff_interval"/>
+                <!-- The maximum interval between transmissions of a single NAK -->
+                <option default-value="2000" name="transport_lbtrm_nak_backoff_interval"/>
+                <!-- The maximum interval to suppress sending NAKs after an NCF or a NAK from another receiver -->
+                <option default-value="500" name="transport_lbtrm_nak_suppress_interval"/>
+                <!-- The maximum time that a piece of data may be outstanding before the data is unrecoverably lost, after that OTR will be attempted if enabled -->
+                <option default-value="6000" name="transport_lbtrm_nak_generation_interval"/>
+                <!-- The length of time a receiver waits before initiating OTR lost-message requests -->
+                <option default-value="20000" name="otr_request_initial_delay"/>
+                <!-- The maximum time from when a receiver first sends an OTR lost-message request to when the receiver gives up on receiving the retransmitted message and reports loss -->
+                <option default-value="360000" name="otr_request_message_timeout"/>
+            </options>
+        </template>
+
+        <template name="UmpAckBatching">
+            <options type="receiver">
+                <!-- Enable sending of ump acks in batches to ump and ump will ack batches of messages instead of every single message individually -->
+                <!-- In case a bunch of messages are processed by an app and it crashes before acking them, the app will get those same messages replayed from ump -->
+                <!-- therefore it is important to only enable this setting on apps that are idempotent such as ledger_up for example-->
+                <option default-value="1" name="ume_use_ack_batching"/>
+            </options>
+        </template>
+
+        <template name="MaxBurstLoss">
+            <options type="receiver">
+                <!-- Declare burst loss if message gap is greater than this value, default is 512 -->
+                <option default-value="10000" name="delivery_control_maximum_burst_loss"/>
+            </options>
+        </template>
+
+        <template name="ExtendReceiverTimeout">
+            <options type="receiver">
+                <!-- Extend receiver timeout to 2 minutes so receiver apps can have a better chance of recovering messages during network outages -->
+                <option default-value="120000" name="transport_lbtrm_activity_timeout"/>
+            </options>
+        </template>
+
+        <template name="ReduceNaks">
+            <options type="receiver">
+                <option default-value="1000" name="transport_lbtrm_nak_generation_interval"/>
+            </options>
+        </template>
+
+        <template name="UmpConfig">
+            <options type="receiver">
+                <!-- The interval between loss detection and transmission of the first NAK -->
+                <option default-value="2000" name="transport_lbtrm_nak_initial_backoff_interval"/>
+                <!-- The maximum interval between transmissions of a single NAK -->
+                <option default-value="2000" name="transport_lbtrm_nak_backoff_interval"/>
+                <!-- The maximum interval to suppress sending NAKs after an NCF or a NAK from another receiver -->
+                <option default-value="500" name="transport_lbtrm_nak_suppress_interval"/>
+                <!-- The maximum time that a piece of data may be outstanding before the data is unrecoverably lost, after that OTR will be attempted if enabled -->
+                <option default-value="6000" name="transport_lbtrm_nak_generation_interval"/>
+                <!-- The length of time a receiver waits before initiating OTR lost-message requests -->
+                <option default-value="3100" name="otr_request_initial_delay"/>
+                <!-- The maximum time from when a receiver first sends an OTR lost-message request to when the receiver gives up on receiving the retransmitted message and reports loss -->
+                <option default-value="15000" name="otr_request_message_timeout"/>
+            </options>
+        </template>
+
+        <!-- Any application that uses this template will have lbm monitoring enabled. Stats will be sent on the default /29west/statistics topic -->
+        <!-- The stats topic needs to be resolved using multicast, late join is disabled and transport is set to unicast udp -->
+        <template name="LbmMonitoring">
+            <options type="context">
+                <option name="monitor_interval" default-value="60"/>
+                <option name="monitor_transport_opts" default-value="topic=lbmstats_<%= node["data_center"]["name"] %>;context|resolver_multicast_address=<%= @peer_name ? @peer_information[@peer_name]['resolver_multicast_address'] : @resolver_multicast_address %>;context|resolver_multicast_port=12966;context|resolver_multicast_interface=<%= @resolver_multicast_interface %>;source|transport_lbtru_interface=<%= @resolver_multicast_interface %>;source|transport_tcp_interface=<%= @resolver_multicast_interface %>;source|transport=lbtru;source|late_join=0;context|transport_lbtru_port_low=14900;context|transport_lbtru_port_high=14999;context|resolver_datagram_max_size=<%= node['lbm']['tr_mtu'] %>;context|transport_lbtrm_datagram_max_size=<%= node['lbm']['mtu'] %>;context|transport_lbtru_datagram_max_size=<%= node['lbm']['mtu'] %>;context|transport_tcp_datagram_max_size=<%= node['lbm']['mtu'] %>;source|resolver_advertisement_minimum_initial_duration=500;source|resolver_advertisement_minimum_initial_interval=200;source|resolver_advertisement_send_immediate_response=0;source|resolver_advertisement_sustain_interval=10000;receiver|resolver_query_sustain_interval=10000;receiver|resolver_query_minimum_initial_duration=500;receiver|resolver_query_minimum_initial_interval=200"/>
+            </options>
+            <options type="receiver">
+            </options>
+            <options type="source">
+            </options>
+            <options type="event-queue">
+                <option name="monitor_interval" default-value="60"/>
+                <option name="queue_service_time_enabled" default-value="1"/>
+                <option name="queue_count_enabled" default-value="1"/>
+                <option name="queue_age_enabled" default-value="1"/>
+                <option name="monitor_transport_opts" default-value="topic=lbmstats_<%= node["data_center"]["name"] %>;context|resolver_multicast_address=<%= @peer_name ? @peer_information[@peer_name]['resolver_multicast_address'] : @resolver_multicast_address %>;context|resolver_multicast_port=12966;context|resolver_multicast_interface=<%= @resolver_multicast_interface %>;source|transport_lbtru_interface=<%= @resolver_multicast_interface %>;source|transport_tcp_interface=<%= @resolver_multicast_interface %>;source|transport=lbtru;source|late_join=0;context|transport_lbtru_port_low=14900;context|transport_lbtru_port_high=14999;context|resolver_datagram_max_size=<%= node['lbm']['tr_mtu'] %>;context|transport_lbtrm_datagram_max_size=<%= node['lbm']['mtu'] %>;context|transport_lbtru_datagram_max_size=<%= node['lbm']['mtu'] %>;context|transport_tcp_datagram_max_size=<%= node['lbm']['mtu'] %>;source|resolver_advertisement_minimum_initial_duration=500;source|resolver_advertisement_minimum_initial_interval=200;source|resolver_advertisement_send_immediate_response=0;source|resolver_advertisement_sustain_interval=10000;receiver|resolver_query_sustain_interval=10000;receiver|resolver_query_minimum_initial_duration=500;receiver|resolver_query_minimum_initial_interval=200"/>
+            </options>
+        </template>
+
+        <!-- The CommonStuff section above applies to the order environment in which the server is part of (eg: int-dev-cert). This section
+             describes the Price Environment that the server will use to receive prices (eg: int-dev-md-sp). The price environment
+             is in a different lbm resolving domain, and has a different range of multicast addresses that it uses. As such,
+             a price consumer needs to define a separate context that contains this configuration. That\'s done in the Applications
+             section below. This template just makes that configuration simpler. -->
+        <template name="PriceEnvironment">
+          <options type="context">
+            <option default-value="239.0.<%= @price_third_octet_offset + 99 %>.<%= @price_forth_octet_start %>" name="resolver_multicast_address"/>
+            <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 99 %>.<%= @price_forth_octet_start + 1%>" name="transport_lbtrm_multicast_address_low"/>
+            <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 99 %>.<%= @price_forth_octet_end %>" name="transport_lbtrm_multicast_address_high"/>
+            <option default-value="26001" name="transport_lbtrm_source_port_low"/>
+            <option default-value="28000" name="transport_lbtrm_source_port_high"/>
+            <option default-value="15100" name="transport_tcp_port_low"/>
+            <option default-value="15390" name="transport_tcp_port_high"/>
+            <option default-value="15570" name="request_tcp_port_low"/>
+            <option default-value="15870" name="request_tcp_port_high"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="default_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="resolver_multicast_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="request_tcp_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="response_tcp_interface"/>
+            <option default-value="<%= @price_mcast_rcv_buf_size_bytes %>" name="transport_lbtrm_receiver_socket_buffer"/>
+          </options>
+          <options type="source">
+            <% if @node && @node.attribute?("lbm") && !node['lbm']['price_environment']['recovery'] %>
+            <option default-value="0" name="late_join"/>
+            <% end %>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_tcp_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_lbtru_interface"/>
+            <!-- Send TSNIs to keep tcp subscription transport sessions alive -->
+            <option default-value="15000" name="transport_topic_sequence_number_info_interval"/>
+            <option default-value="0" name="transport_topic_sequence_number_info_active_threshold"/>
+          </options>
+          <options type="receiver">
+            <% if @node && @node.attribute?("lbm") && !node['lbm']['price_environment']['recovery'] %>
+            <option default-value="0" name="use_otr"/>
+            <option default-value="0" name="use_late_join"/>
+            <% end %>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_tcp_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_lbtru_interface"/>
+            <% if @node && @node.attribute?("lbm") && !node['lbm']['price_environment']['recovery'] %>
+            <% if @node.functional_environment.start_with?('ext-prod-delayed') or @node.functional_environment.start_with?('ext-prod-sim') %>
+                <!-- This will limit sent NAKs to between 2 to 4 per missing sequence -->
+                <!-- The maximum interval between transmissions of a single NAK -->
+                <option default-value="500" name="transport_lbtrm_nak_backoff_interval"/>
+                <option default-value="1000" name="transport_lbtrm_nak_generation_interval"/>
+            <% else %>
+                <option default-value="1000" name="transport_lbtrm_nak_generation_interval"/>
+            <% end %>
+            <% end %>
+          </options>
+        </template>
+
+        <!-- TTNotify environment is on the same topic resolution domain as the price environment but we want lbm recovery enabled
+             therefore we will use a separate template that doesnt disable lbm recovery. -->
+        <template name="TTNotifyEnvironment">
+          <options type="context">
+            <option default-value="239.0.<%= @price_third_octet_offset + 99 %>.<%= @price_forth_octet_start %>" name="resolver_multicast_address"/>
+            <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 99 %>.<%= @price_forth_octet_start + 1%>" name="transport_lbtrm_multicast_address_low"/>
+            <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 99 %>.<%= @price_forth_octet_end %>" name="transport_lbtrm_multicast_address_high"/>
+            <option default-value="26001" name="transport_lbtrm_source_port_low"/>
+            <option default-value="28000" name="transport_lbtrm_source_port_high"/>
+            <option default-value="15100" name="transport_tcp_port_low"/>
+            <option default-value="15390" name="transport_tcp_port_high"/>
+            <option default-value="15570" name="request_tcp_port_low"/>
+            <option default-value="15870" name="request_tcp_port_high"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="default_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="resolver_multicast_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="request_tcp_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="response_tcp_interface"/>
+          </options>
+          <options type="source">
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_tcp_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_lbtru_interface"/>
+          </options>
+          <options type="receiver">
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_tcp_interface"/>
+            <option default-value="&quot;<%= @price_interface %>&quot;" name="transport_lbtru_interface"/>
+          </options>
+        </template>
+    </templates>
+
+    <applications>
+        <!-- OC has UseUMP removed to disable ump on received messages from bouncer and ase, once we put it back we will need to wipe the UMPs first to avoid a large initial replay -->
+        <application name="OrderConnector" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+            <event-queues/>
+        </application>
+        <application name="SimuTrader" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="SimuTrader" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="SimuTrader_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <% if node['deployed_cookbooks'].include?("ttmatch") %>
+        <application name="TTEX" template="CommonStuff,SendViaMulticast,LbmMonitoring,ReduceNaks">
+        <% else %>
+        <application name="TTEX" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+        <% end %>
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="TTEX" />
+              </options>
+            </context>
+            <context name="TTINTLEGFILLContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment,UseUMP">
+                <options type="context">
+                    <option name="monitor_appid" default-value="TTINTLEGFILL" />
+                </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="TTEX_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="JunoRequestServer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="JunoRequestServer" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="JunoRequestServer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="LedgerRequestServer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="LedgerRequestServer" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="LedgerRequestServer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="LedgerUpdateServer" template="CommonStuff,SendViaMulticast,UseUMP,LbmMonitoring,MaxBurstLoss,UmpAckBatching">
+            <contexts>
+                <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+                    <options type="context">
+                      <option name="monitor_appid" default-value="LedgerUpdateServer" />
+                    </options>
+                    <receivers>
+                        <topic pattern="^ledger\.sync\.">
+                            <options type="receiver">
+                                <option default-value="0" name="use_late_join" />
+                            </options>
+                        </topic>
+                    </receivers>
+                </context>
+            </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="LedgerUpdateServer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="KafkaUploader" template="CommonStuff,SendViaMulticast,UseUMP,LbmMonitoring,MaxBurstLoss">
+            <contexts>
+                <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+                    <options type="context">
+                      <option name="monitor_appid" default-value="KafkaUploader" />
+                    </options>
+                </context>
+            </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="KafkaUploader_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="KafkaPositionsUploader" template="CommonStuff,SendViaMulticast,LbmMonitoring,MaxBurstLoss">
+            <contexts>
+                <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+                    <options type="context">
+                      <option name="monitor_appid" default-value="KafkaPositionsUploader" />
+                    </options>
+                </context>
+            </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="KafkaPositionsUploader_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="JunoAggregator" template="CommonStuff,SendViaMulticast,LbmMonitoring,MaxBurstLoss">
+            <contexts>
+                <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+                    <options type="context">
+                      <option name="monitor_appid" default-value="JunoAggregator" />
+                    </options>
+                </context>
+            </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="JunoAggregator_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="LedgerWebServer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="LedgerWebServer" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="LedgerWebServer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <% if node.functional_environment.start_with?('int-') %>
+        <application name="Bouncer" template="CommonStuff,SendViaMulticast,UseUMP,LbmMonitoring">
+        <% else %>
+        <application name="Bouncer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+        <% end %>
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues/>
+        </application>
+        <application name="BouncerTester" template="CommonStuff,SendViaTCP,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="BouncerTester" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="BouncerTester_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <% if node.functional_environment.start_with?('int-') %>
+        <application name="Stager" template="CommonStuff,SendViaMulticast,UseUMP,LbmMonitoring">
+        <% else %>
+        <application name="Stager" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+        <% end %>
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+          </contexts>
+          <event-queues/>
+        </application>
+        <application name="juno_up" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="juno_up" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="juno_up_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="juno_web" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="juno_web" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="juno_web_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="junolistener" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="junolistener" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="junolistener_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="backofficedatafeeder" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="backofficedatafeeder" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="backofficedatafeeder_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="backofficenode" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="backofficenode" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="backofficenode_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="dropcopyclientnode" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="dropcopyclientnode" />
+              </options>
+              <sources order="deny,allow">
+                  <topic pattern="^LEDGER\.[a-zA-Z0-9_-]+\.[0-9]+" rule="allow">
+                      <options type="source">
+                          <option default-value="<%= @ibdc_ledger_topic_address %>" name="transport_lbtrm_multicast_address" />
+                      </options>
+                  </topic>
+              </sources>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="dropcopyclientnode_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="orderrtgnode" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="orderrtgnode" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="orderrtgnode_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="secdefnode" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="secdefnode" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="secdefnode_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="miaminode" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="miaminode" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="miaminode_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="productservernode" template="CommonStuff,SendViaTCP,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="productservernode" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="productservernode_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="seq_util" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="seq_util" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="seq_util_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="Roe" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="Roe" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="Roe_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="AlgoServer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="AlgoServer" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="AlgoServer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="AlgoContainer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="AlgoContainer" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="AlgoContainer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="AlgoLoadBalancer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="AlgoLoadBalancer" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="AlgoLoadBalancer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="ase" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="ase_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="asetest" template="CommonStuff,SendViaTCP,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="asetest" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="asetest_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="AGGREGATOR" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="AGGREGATOR" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="AGGREGATOR_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+<% if (node.functional_environment.include?('live') and node.data_center.name != "new_york" and node.data_center.name != "london") %>
+        <application name="EdgeServer" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+<% else %>
+        <application name="EdgeServer" template="CommonStuff,SendViaMulticast,LbmMonitoring,MaxBurstLoss,ExtendReceiverTimeout">
+<% end %>
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="EdgeServer" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="EdgeServer_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="Bookie" template="CommonStuff,SendViaMulticast,UseUMP,LbmMonitoring,MaxBurstLoss">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="Bookie" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="Bookie_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+          </application>
+        <application name="IMBookie" template="CommonStuff,SendViaMulticast,UseUMP,LbmMonitoring,MaxBurstLoss">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="IMBookie" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="IMBookie_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="tnwgd" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+            <contexts>
+              <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              </context>
+        <% if @peer_information %>
+          <% @peer_information.sort.map do |peer_name, peer_data| %>
+            <context name="<%= peer_data["endpoint_name"].gsub('.','_') %>-context" template="<%= peer_data["endpoint_name"].gsub('.','_') %>-template">
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+          <% end -%>
+        <% end -%>
+        </contexts>
+        <event-queues/>
+        </application>
+        <application name="TTUSPub" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="TTUSPub" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="TTUSPub_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="orderd_cpp" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="orderd_cpp" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="orderd_cpp_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="orderd" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+            <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="orderd" />
+              </options>
+            </context>
+                <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                    <options type="context">
+                    </options>
+                    <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                    <sources order="deny,allow">
+                      <topic pattern="PCReq.*" rule="allow">
+                        <options type="source">
+                          <option default-value="tcp" name="transport" />
+                        </options>
+                      </topic>
+                    </sources>
+                </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+            </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="orderd_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="algocli" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="algocli" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="algocli_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="algoserver_debug" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="algoserver_debug" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="algoserver_debug_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="pricefs" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues/>
+        </application>
+        <application name="algoserver_exec" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="algoserver_exec" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="algoserver_exec_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="orderd_remote" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="orderd_remote" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="orderd_remote" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="TTEXLineHandler" template="CommonStuff,SendViaTCP,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="TTEXLineHandler" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="TTEXLineHandler_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="synthetic_engine" template="CommonStuff,SendViaTCP,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="synthetic_engine" />
+              </options>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="synthetic_engine_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="achtung" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="achtung" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="achtung_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="Canary" template="CommonStuff,SendViaMulticast,LbmMonitoring,ReduceNaks">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="Canary" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="Canary_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="lbm_ump" template="CommonStuff,SendViaMulticast,LbmMonitoring,MaxBurstLoss,UmpConfig">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+          </contexts>
+            <event-queues/>
+        </application>
+        <application name="" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+            <contexts/>
+            <event-queues/>
+        </application>
+        <application name="lbm_traffic" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="lbm_traffic" />
+              </options>
+              <options type="source">
+                <option default-value="0" name="late_join"/>
+              </options>
+              <options type="receiver">
+                <option default-value="0" name="use_otr"/>
+                <option default-value="0" name="use_late_join"/>
+                <option default-value="1000" name="transport_lbtrm_nak_generation_interval"/>
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="lbm_traffic_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="triage_worker" template="CommonStuff,SendViaMulticast">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="triage_worker" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="triage_worker_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="T_Trader" template="CommonStuff,SendViaMulticast">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="T_Trader" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="T_Trader_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="MarketFinder" template="CommonStuff,SendViaMulticast">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="MarketFinder" />
+              </options>
+            </context>
+          </contexts>
+          <event-queues>
+            <event-queue>
+              <options type="event-queue">
+                <option name="monitor_appid" default-value="MarketFinder_eventQueue" />
+              </options>
+            </event-queue>
+          </event-queues>
+        </application>
+        <application name="Pyrate" template="CommonStuff,SendViaMulticast">
+          <contexts>
+            <context>
+<%= render "ump_ensemble.erb", :cookbook => "lbm" -%>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+            </context>
+            <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+              <options type="context">
+              </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+            </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+          </contexts>
+          <event-queues/>
+        </application>
+        <application name="lbm_monitor" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+          <contexts>
+            <context>
+<%= render "topic_settings.erb", :cookbook => "lbm" -%>
+              <options type="context">
+                <option name="monitor_appid" default-value="lbm_monitor" />
+                <option default-value="1000000" name="transport_lbtrm_data_rate_limit"/>
+              </options>
+              <options type="source">
+                <option default-value="0" name="late_join"/>
+              </options>
+              <options type="receiver">
+                <option default-value="0" name="use_otr"/>
+              </options>
+            </context>
+          </contexts>
+          <event-queues/>
+        </application>
+
+        <% if node['deployed_cookbooks'].include?("ps_echo") %>
+        <application name="price_server" template="CommonStuff,SendViaMulticast,LbmMonitoring,ReduceNaks">
+        <% else %>
+        <application name="price_server" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+        <% end %>
+            <contexts>
+             <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+               <options type="context">
+               </options>
+             </context>
+             <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+              </context>
+            <% (1..98).each do |i| %>
+	      <% if i != 45 -%>
+              <context name="PriceContext_Exch<%= i %>" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                    <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + i %>.<%= @price_forth_octet_start%>" name="transport_lbtrm_multicast_address_low"/>
+                    <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + i %>.<%= @price_forth_octet_end %>" name="transport_lbtrm_multicast_address_high"/>
+                    <% if @node && @node.attribute?("lbm") && node["lbm"].attribute?("lbm_price_resolver_port") -%>
+                    <option default-value="<%= node['lbm']['lbm_price_resolver_port'] %>" name="resolver_multicast_port" />
+                    <% end -%>
+                </options>
+                <sources order="deny,allow">
+                    <topic pattern="PSStat.*" rule="allow">
+                        <options type="source">
+                            <option default-value="tcp" name="transport" />
+                        </options>
+                    </topic>
+                    <!-- Send Product download via TCP -->
+                    <topic pattern="PSProd.*" rule="allow">
+                        <options type="source">
+                            <option default-value="tcp" name="transport" />
+                        </options>
+                    </topic>
+                </sources>
+              </context>
+	      <% else -%>
+              <!-- Reserved 45 for TTNotify -->
+	      <% end -%>
+            <% end %>
+            <% (200..219).each do |i| %>
+              <context name="PriceContext_Exch<%= i %>" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                    <option default-value="239.<%= @data_center_value %>.<%= @synthetic_price_third_octet_offset + i %>.<%= @price_forth_octet_start%>" name="transport_lbtrm_multicast_address_low"/>
+                    <option default-value="239.<%= @data_center_value %>.<%= @synthetic_price_third_octet_offset + i %>.<%= @price_forth_octet_end %>" name="transport_lbtrm_multicast_address_high"/>
+                </options>
+                <sources order="deny,allow">
+                    <topic pattern="PSStat.*" rule="allow">
+                        <options type="source">
+                            <option default-value="tcp" name="transport" />
+                        </options>
+                    </topic>
+                    <!-- Send Product download via TCP -->
+                    <topic pattern="PSProd.*" rule="allow">
+                        <options type="source">
+                            <option default-value="tcp" name="transport" />
+                        </options>
+                    </topic>
+                </sources>
+              </context>
+            <% end %>
+            <context>
+                <receivers>
+                    <topic pattern="^OC\.[0-9]+$">
+                        <options type="receiver">
+                            <option default-value="0" name="use_otr"/>
+                            <option default-value="0" name="use_late_join"/>
+                            <option default-value="1000" name="transport_lbtrm_nak_generation_interval"/>
+                        </options>
+                    </topic>
+                </receivers>
+            </context>
+            </contexts>
+            <event-queues/>
+        </application>
+        <application name="pds_uploader" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+            <contexts>
+              <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+              </context>
+            <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+              <options type="context">
+              </options>
+            </context>
+            </contexts>
+            <event-queues/>
+        </application>
+        <application name="srl_proxy" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+            <contexts>
+              <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+              </context>
+            </contexts>
+            <event-queues/>
+        </application>
+        <!-- Generic app name that all test price applications can use -->
+        <application name="generic_price_client" template="CommonStuff,SendViaMulticast,LbmMonitoring">
+            <contexts>
+              <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+                <!-- Use tcp instead of udp multicast to reduce subscription timeouts -->
+                <sources order="deny,allow">
+                  <topic pattern="PCReq.*" rule="allow">
+                    <options type="source">
+                      <option default-value="tcp" name="transport" />
+                    </options>
+                  </topic>
+                </sources>
+              </context>
+              <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+              </context>
+            </contexts>
+            <event-queues/>
+        </application>
+        <application name="TTNotify_Server" template="CommonStuff,SendViaMulticast">
+          <contexts>
+             <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                    <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 45 %>.<%= @price_forth_octet_start%>" name="transport_lbtrm_multicast_address_low"/>
+                    <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 45 %>.<%= @price_forth_octet_end %>" name="transport_lbtrm_multicast_address_high"/>
+                </options>
+                <sources order="deny,allow">
+                    <topic pattern="ttnotify.*" rule="allow">
+                        <options type="source">
+                        </options>
+                    </topic>
+                </sources>
+            </context>
+             <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+                <options type="context">
+                    <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 45 %>.<%= @price_forth_octet_start%>" name="transport_lbtrm_multicast_address_low"/>
+                    <option default-value="239.<%= @data_center_value %>.<%= @price_third_octet_offset + 45 %>.<%= @price_forth_octet_end %>" name="transport_lbtrm_multicast_address_high"/>
+                </options>
+                <sources order="deny,allow">
+                    <topic pattern="ttnotify.*" rule="allow">
+                        <options type="source">
+                        </options>
+                    </topic>
+                </sources>
+            </context>
+          </contexts>
+        </application>
+        <application name="TTNotify_Client" template="CommonStuff,SendViaMulticast">
+          <contexts>
+             <context name="PriceEnvironmentContext" template="CommonStuff,SendViaMulticast,PriceEnvironment">
+                <options type="context">
+                </options>
+            </context>
+             <context name="TTNotifyEnvironmentContext" template="CommonStuff,SendViaMulticast,TTNotifyEnvironment">
+                <options type="context">
+                </options>
+            </context>
+          </contexts>
+        </application>
+     </applications>
+</um-configuration>
