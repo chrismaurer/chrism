@@ -140,7 +140,7 @@ class GetSupportedOrderTypes():
                 try:
                     output = full_output["entries"]
                 except KeyError:
-                    print "PDS Output parsing Error case:\n\n" + str(full_output)
+                    print("PDS Output parsing Error case:\n\n" + str(full_output))
         else:
             try:
                 output = full_output["instruments"]
@@ -162,7 +162,7 @@ class GetSupportedOrderTypes():
                 if market in str(market_id):
                     return str(market_id["i"])
             else:
-                print ("Market, \"{0}\" does not seem to exist.".format(market))
+                print("Market, \"{0}\" does not seem to exist.".format(market))
 
     def get_supported_order_types(self, market):
 
@@ -174,10 +174,10 @@ class GetSupportedOrderTypes():
             try:
                 qqq = o['ottifId']#, o['params'][0]['e']
             except KeyError:
-                print "\nKeyError case:\n\n" + str(o)
+                print("\nKeyError case:\n\n" + str(o))
                 supported_order_types = None
             except TypeError:
-                print "\nTypeError case:\n\n" + str(supported_order_types)
+                print("\nTypeError case:\n\n" + str(supported_order_types))
                 supported_order_types = None
 
         return supported_order_types
@@ -223,7 +223,7 @@ class GetSupportedOrderTypes():
 
         list_of_all_possible_order_types.sort()
         for ot in list_of_all_possible_order_types:
-            print ot
+            print(ot)
 
         all_possible_order_types.sort()
 
@@ -242,7 +242,7 @@ class GetSupportedOrderTypes():
             try:
                 table_row = [self.ottifmap[possible_order_type], ]
             except KeyError:
-                print "KeyError:", possible_order_type
+                print("KeyError:", possible_order_type)
             for column in table_header:
                 for value in order_type_db.itervalues():
                     for k, v in value.iteritems():
