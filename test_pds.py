@@ -128,6 +128,7 @@ class GetSupportedOrderTypes():
             headers = dict(self.headers, **self.auth)
         else:
             headers = dict(self.headers)
+        print("URL:", url)
         request = requests.get(url, headers=headers)
         output = request._content
         while ":false" in output:
