@@ -182,6 +182,15 @@ class GetSupportedOrderTypes():
 
         return supported_order_types
 
+    def get_pmerge_data(self, market):
+
+        endpoint = "/api/1/pmerge/market/" + str(market)
+        url = self.base_url + endpoint
+
+        pmerge_data = self.parse_pds_output(url)
+
+        return pmerge_data
+
     def create_order_type_table(self):
 
         order_type_db = {}
@@ -249,4 +258,5 @@ class GetSupportedOrderTypes():
 
 
 runme = GetSupportedOrderTypes()
-runme.create_order_type_table()
+#runme.create_order_type_table()
+print(runme.get_pmerge_data())
