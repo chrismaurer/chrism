@@ -184,7 +184,9 @@ class GetSupportedOrderTypes():
 
     def get_pmerge_data(self, market):
 
-        endpoint = "/api/1/pmerge/market/" + str(market)
+		market_id = self.get_market_id(market)
+
+        endpoint = "/api/1/pmerge/market/" + str(market_id)
         url = self.base_url + endpoint
 
         pmerge_data = self.parse_pds_output(url)
