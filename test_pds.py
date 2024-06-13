@@ -124,7 +124,7 @@ class GetSupportedOrderTypes():
                         153: 'MarketIfTouched GFA'}
 
     def parse_pds_output(self, url):
-        if "ottif" in url:
+        if "ottif" in url or "pmerge" in url:
             headers = dict(self.headers, **self.auth)
         else:
             headers = dict(self.headers)
