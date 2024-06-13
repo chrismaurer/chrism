@@ -5,7 +5,7 @@ class GetSupportedOrderTypes():
 
     def __init__(self):
 
-        environment = "int-stage-cert"
+        environment = "int-dev-cert"
         self.market = "KRX"
 
         pds_url = "".join(["https://pds-", environment, ".trade.tt"])
