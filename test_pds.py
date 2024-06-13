@@ -191,7 +191,8 @@ class GetSupportedOrderTypes():
 
         pmerge_data = self.parse_pds_output(url)
 
-        return pmerge_data
+        for pmg_entry in pmerge_data:
+            print(pmg_entry)
 
     def create_order_type_table(self):
 
@@ -261,4 +262,4 @@ class GetSupportedOrderTypes():
 
 runme = GetSupportedOrderTypes()
 #runme.create_order_type_table()
-print(runme.get_pmerge_data())
+runme.get_pmerge_data("KRX")
