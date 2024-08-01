@@ -145,7 +145,7 @@ class TestPDSData:
 
         self.debug = False
 
-        self.pdsdomain = "int-dev-cert"
+        self.pdsdomain = "int-stage-cert"
         self.market = "HKEX"
         self.market_stats = {0: {}, 1: {}}
 
@@ -729,17 +729,7 @@ class TestPDSData:
 
                 # Get Term
                 term = instrument_definition["Term"]
-                if term is not None:
-                    try:
-                        term_values = get_term_values(term)
-                        if len(str(term_values["year"])) == 4:
-                            term_yyyy_mm = "".join((str(term_values["year"]), str(term_values["month"])))
-                        else:
-                            term_yyyy_mm = "".join(("20", str(term_values["year"]), str(term_values["month"])))
-                    except TypeError:
-                        print("TypeError:")
-                        print("term:", term, "term_values:", term_values)
-                        print(url)
+                term_yyyy_mm, alias_term_yyyy_mm, term_values = None, None, None
 
                 if self.market == "MEFF":
                     alias_term = get_alias_term_values(alias.split(" ")[1])
@@ -751,32 +741,44 @@ class TestPDSData:
                 if "W" in str(alias_term):
                     print("Skipping this instrument. alias_term = {}".format(alias_term))
                     continue
-                alias_term_dict = alias_term.split("-")[0] if "-" in alias_term else alias_term
-                alias_term_dict = alias_term.split(":+")[0] if ":+" in alias_term else alias_term
-                alias_term_yyyy_mm = "".join(["20", str(alias_term_dict['year']), str(alias_term_dict['month'])]) if len(str(alias_term_dict['year'])) == 2\
-                    else "".join([str(alias_term_dict['year']), str(alias_term_dict['month'])])
+
+                if term is not None:
+                    alias_term_dict = alias_term.split("-")[0] if "-" in alias_term else alias_term
+                    alias_term_dict = alias_term.split(":+")[0] if ":+" in alias_term else alias_term
+                    alias_term_yyyy_mm = "".join(
+                        ["20", str(alias_term_dict['year']), str(alias_term_dict['month'])]) if len(
+                        str(alias_term_dict['year'])) == 2 \
+                        else "".join([str(alias_term_dict['year']), str(alias_term_dict['month'])])
+                    try:
+                        term_values = get_term_values(term)
+                        if len(str(term_values["year"])) == 4:
+                            term_yyyy_mm = "".join((str(term_values["year"]), str(term_values["month"])))
+                        else:
+                            term_yyyy_mm = "".join(("20", str(term_values["year"]), str(term_values["month"])))
+                    except TypeError:
+                        print("TypeError:")
+                        print("term:", term, "term_values:", term_values)
+                        print(url)
+
+                    # Verify Term Value
+                    if term_yyyy_mm != alias_term_yyyy_mm:
+                        term_incorrect.append([alias, term])
+
 
                 # Get CDD
                 cdd = None
-                if "cdd" not in instrument_definition:
+                if alias_term_yyyy_mm != exp_date_yyyy_mm and "cdd" not in instrument_definition:
                     missing_cdds.append(alias)
                 else:
-                    cdd = instrument_definition["cdd"]
-                    # If Expiry Month Year != Contract Name Month Year then CDD is needed for correct Tag 200 value
-                    if alias_term_yyyy_mm == exp_date_yyyy_mm:
-                        if "cdd" in instrument_definition:
-                            unneeded_cdds.append([alias, cdd])
-                    else:
-                        if "cdd" in instrument_definition and instrument_definition["cdd"] is not None:
+                    if "cdd" in instrument_definition:
+
+                        # If Expiry Month Year != Contract Name Month Year then CDD is needed for correct Tag 200 value
+                        cdd_yyyy_mm = None
+                        if "cdd" is not None:
                             cdd = instrument_definition["cdd"]
-                        cdd_yyyy_mm = "".join(list(cdd)[:6]) if cdd is not None else None
-                        if cdd_yyyy_mm != alias_term_yyyy_mm:
-                            incorrect_cdds.append([alias, cdd, maturity_date, exp_date, url])
-
-                        if term is not None:
-                            if term_yyyy_mm != alias_term_yyyy_mm:
-                                term_incorrect.append([alias, term])
-
+                            cdd_yyyy_mm = "".join(list(cdd)[:6])
+                            if cdd_yyyy_mm != alias_term_yyyy_mm:
+                                incorrect_cdds.append([alias, cdd, maturity_date, exp_date, url])
 
                         # Verify CDD has correct value
                         try:
@@ -814,77 +816,6 @@ class TestPDSData:
 
                         # if expected_exp_date != exp_date:
                         #     maturity_exp_mismatch.append((product_name, product_type, maturity_date, exp_date))
-                        if alias_term_yyyy_mm == exp_date_yyyy_mm:
-                            if expected_cdd_date is None:
-                                print(instrument_definition)
-                            expected_cdd_date = int("".join([str(expected_cdd_date.year), str(expected_cdd_date.month).zfill(02)]))
-
-                            if expected_cdd_date != actual_cdd_date:
-                                incorrect_cdds.append((alias, cdd, maturity_date, exp_date, url))
-
-                        # Case 2: Expiry and Contract / Alias Monthyear are different
-                        if alias_term_yyyy_mm != exp_date_yyyy_mm:
-                            expected_cdd_date = int("".join([str(alias_term_yyyy_mm[:4]), str(alias_term_yyyy_mm[4:6]).zfill(02)]))
-                            if expected_cdd_date != actual_cdd_date:
-                                incorrect_cdds.append((alias, cdd, maturity_date, exp_date, url))
-
-                    if self.get_time_tuple(exp_date)[6] > 4:
-                        print("url: {}".format(url))
-                        print("FAIL: {0} exp date {1} is a weekend day".format(name, exp_date))
-                    elif self.get_time_tuple(maturity_date)[6] > 4:
-                        print("url: {}".format(url))
-                        print("FAIL: {0} maturity {1} is a weekend day".format(name, maturity_date))
-
-                    # If Expiry Month Year != Contract Name Month Year then CDD is needed for correct Tag 200 value
-                    if alias_term_yyyy_mm == exp_date_yyyy_mm:
-                        if "cdd" in instrument_definition:
-                            unneeded_cdds.append([alias, cdd])
-                    else:
-                        if "cdd" in instrument_definition and instrument_definition["cdd"] is not None:
-                            cdd = instrument_definition["cdd"]
-                        cdd_yyyy_mm = "".join(list(cdd)[:6]) if cdd is not None else None
-                        if cdd_yyyy_mm != alias_term_yyyy_mm:
-                            incorrect_cdds.append([alias, cdd, maturity_date, exp_date, url])
-
-                        if term is not None:
-                            if term_yyyy_mm != alias_term_yyyy_mm:
-                                term_incorrect.append([alias, term])
-
-
-                        # Verify CDD has correct value
-                        try:
-                            if len(str(exp_date)) > 8:
-                                exp_date = int(''.join(list(str(exp_date))[:8]))
-                        except TypeError as e:
-                            print("TypeError:\ninstrument_definition: {}\nname: {}\nexp_date: {}\nmaturity_date: {}\n"
-                                  .format(instrument_definition, name, exp_date, maturity_date))
-                        if product_type == "MLEG":
-                            if "legs" not in instrument:
-                                print("url: {}".format(url))
-                                print("FAIL: {0} {1} exp date {2} has no legs!".format(name, product_type, exp_date))
-                            else:
-                                exp_date = None
-                                if len(instrument["legs"]) > 1:
-                                    leg_ltds = []
-                                    for leg in instrument["legs"]:
-                                        leg_ltds.append(leg["ltd"])
-                                        exp_date = min(leg_ltds)
-
-                        # Determine expected CDD
-                        expected_cdd_date = None
-                        actual_cdd_date = None if cdd is None else int("".join(list(cdd)[:6]))
-
-                        # Case 1: Expiry and Contract / Alias Monthyear are the same
-                        if product_type == "MLEG" or (product_name not in group_a_prods and product_name not in group_b_prods):
-                            expected_cdd_date = get_date_values(int("".join(list(str(exp_date))[:6])))
-                        else:
-                            maturity_date_values = get_date_values(maturity_date)
-                            if product_name in group_a_prods:
-                                expected_cdd_date = monthdelta(maturity_date_values, 1)
-                            else:
-                                expected_cdd_date = monthdelta(maturity_date_values, -1)
-                            # expected_exp_date = int("".join([str(expected_exp_date.year), str(expected_exp_date.month).zfill(02), str(expected_exp_date.day).zfill(02)]))
-
                         if alias_term_yyyy_mm == exp_date_yyyy_mm:
                             if expected_cdd_date is None:
                                 print(instrument_definition)
