@@ -5,7 +5,7 @@ class GetSupportedOrderTypes():
 
     def __init__(self):
 
-        environment = "int-stage-cert"
+        environment = "int-dev-cert"
         self.market = "KRX"
 
         pds_url = "".join(["https://pds-", environment, ".trade.tt"])
@@ -13,7 +13,7 @@ class GetSupportedOrderTypes():
 
         self.headers = {'content-type': 'application/json'}
         self.market = "SGX"
-        self.auth = {'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiIsIng1dCI6Ik1NSVMtN2JHWTFHc2J2bk5adl9hMS1xelpQTSJ9.eyJjbGllbnRfaWQiOiI1NTRkYjQ4MjdmZDc0MDg5ODNkYjVhNmZmOWM0YjQ5MSIsInN1YiI6Ijc3ZTY0OGEyYzJkODQ5MDE4Yjc3MTNmYWZhOTk3YzhjIiwic2NvcGVzIjpbIm5leHRyYWRlciIsImRhcndpbi9yIiwicm9lL2VkIiwicm9lL2V3Iiwicmlza2FwaS9kZXYiLCJudHcvdHQiLCJkaWFnL3giLCJwZHMvZ3VpIiwibW9uaXRvci94Iiwic2NyeS9lZXgiLCJzY29yZS90dCIsInRyaWFnZS9yIiwidHJpYWdlL3giLCJzeXN0ZW0vdiIsInNjb3JlL3YiLCJkaWFnL3YiLCJlY2hvL2FsbCIsInJpc2thcGkvciIsInJpc2thcGkvdyIsIm1lc3NhZ2VjZW50ZXIvciIsImJpbGxpbmcvciIsImxlZGdlci9yIiwiYm9va2llL3IiLCJqdW5vd2ViL3IiLCJlZGdlL3ByIiwiZWRnZS9vciIsIm50dy94IiwicGRzL3IiLCJwZHMvdyIsImFuYWx5dGljcy9yIiwibWVzc2FnZWNlbnRlci93Iiwic2NvcmUvciIsInRyYWRlL3YiLCJhZGwvdiIsImFsZ290ZXN0aW5nL3YiLCJtb25pdG9yL3YiLCJzZXR1cC92IiwiaW5ib3gvdiJdLCJpc3MiOiJodHRwczovL2lkLnR0c3RhZ2UuY29tLyIsImF1ZCI6InR0LWludCIsImV4cCI6MTU5MjkyMzU1MCwibmJmIjoxNTkyODgwMjkwLCJleHBpcmVzIjoxNTkyOTIzNTUwMDAwMDAwMDAwLCJyZWZyZXNoX2F0IjoxNTkyODgzOTUwLCJpZCI6OTU4NywicGVyc29uX2lkIjoyMDUsInRva2VuX2lzc3VlIjoyLCJzZXNzaW9uX2lkIjoiNTI4ODYwNzc4NjY1NjA3MTY4MDVlZjE2NzlhYjQzZTg1LjYwNjA5MDAyIiwidHdvX2ZhY3RvciI6Ik5vbmUiLCJjbGllbnRfaXAiOiIyNy4xMTAuMjguMjA0IiwiY29tcGFueV9pZCI6MjQsImlkcCI6Imh0dHA6Ly90dHN0cy50cmFkaW5ndGVjaG5vbG9naWVzLmNvbS9hZGZzL3NlcnZpY2VzL3RydXN0In0.PIE1hii8rGbn6sCSTLUyC-18D1b6lVQxS0rKTfBTFW2pjAU0adto3XUVsV_feasS9Fz6MrV1ACuP6JzH8xyVsnw2FBCvrG9w53Sa-CARgF9Jx7auC2MJlQUyssJJUTvwHTxpXwPz4yLOqKC8EP2tuJOuCh8ycRHNbGggMrjR6KUBUEmIiyZuDeLKxehKKZP_8TRufI6pRRbhlduLb9hJuinNevLEmQhGWehgs6JJ0E_rexmzos3NJzA4FAKTQGyfo3fGND7637AWFLC9kICkZVKaxEkx18B-KmE9gap6QQV-rxfMfwVJtUAqMpgcIdhvFYmSiOqUwLzrGogaS64PMA'}
+        self.auth = {'Authorization': 'Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCIsIng1dCI6IlhKdzdUR3FvNy1tTS04TW45M3Q5NU9vQTQzcyJ9.eyJjbGllbnRfaWQiOiJiOTZjODMyNzUyN2M0NThlODNkMWVmMGZiZjcxOGU0ZCIsInN1YiI6Ijc3ZTY0OGEyYzJkODQ5MDE4Yjc3MTNmYWZhOTk3YzhjIiwic2NvcGVzIjpbIm5leHRyYWRlciIsImRhcndpbi9yIiwicm9lL2VkIiwicm9lL2V3Iiwicmlza2FwaS9kZXYiLCJudHcvdHQiLCJkaWFnL3giLCJwZHMvZ3VpIiwibW9uaXRvci94Iiwic2NyeS9lZXgiLCJzY29yZS90dCIsInRyaWFnZS9yIiwidHJpYWdlL3giLCJzeXN0ZW0vdiIsInNjb3JlL3YiLCJkaWFnL3YiLCJlY2hvL2FsbCIsInJpc2thcGkvciIsInJpc2thcGkvdyIsIm1lc3NhZ2VjZW50ZXIvciIsImJpbGxpbmcvciIsImxlZGdlci9yIiwiYm9va2llL3IiLCJqdW5vd2ViL3IiLCJlZGdlL3ByIiwiZWRnZS9vciIsIm50dy94IiwicGRzL3IiLCJwZHMvdyIsImFuYWx5dGljcy9yIiwibWVzc2FnZWNlbnRlci93Iiwic2NvcmUvciIsInRyYWRlL3YiLCJhZGwvdiIsImFsZ290ZXN0aW5nL3YiLCJtb25pdG9yL3YiLCJzZXR1cC92IiwiaW5ib3gvdiIsInJpc2thcGkvYXJsLXVzZXIiXSwibmJmIjoxNzE4MjcyMTIyLCJleHAiOjE3MTgyNzYwODIsImlzcyI6Imh0dHBzOi8vaWQudHRzdGFnZS5jb20vIiwiYXVkIjoidHQtaW50IiwiaWQiOjk1ODcsImlkcHNuIjoiVFQiLCJleHBpcmVzIjoxNzE4Mjc2MDgyMDAwMDAwMDAwLCJyZWZyZXNoX2F0IjoxNzE4Mjc0MTMyLCJwZXJzb25faWQiOjIwNSwidG9rZW5faXNzdWUiOjIsInNlc3Npb25faWQiOiIxMzg4NTk3ODUwNzE2MTU0MjU1NjY2YWMwNWNlNTkxNTMuODQzNzQwODEiLCJ0d29fZmFjdG9yIjoiR29vZ2xlIEF1dGhlbnRpY2F0b3IiLCJjbGllbnRfaXAiOiIxNjAuNzIuMjE3LjI1NCIsImNvbXBhbnlfaWQiOjI0LCJpZHAiOiJ0dGlkIn0.VA1_xVBsr4XeJQgyXl9kNNd7m98m7RHzLIdspsrgX2KPIcvH8DPDfIVtpgsPwSQmxDIRxkO2yTT4Vy2FbmW_-X8pcyOzEqtae6i25idijAI0iI_yqoQ_7KPoUbTeSq06qR7ANEcNCrYpeIzOeydnTXk7qhoGz4oWxbNL9QqfBm5WtH3Js57izXb6AhzKNSJTq5B-EqPUU481pUV5wvKRN_vO9h-F1sUGtNWwHxn58pW_vaepx_n7ly7Hn8zQtEMPadkJoFPZueQeH_gtGnWbkuS9vZ2NsaK5ZXwW4hK6ZHHT1SUhVLbfuug0R_fHAdWPMCf68NY75BK3m22vgpryjA'}
 
         self.ottifmap= {1: 'Market Day',
                         2: 'Limit Day',
@@ -124,10 +124,11 @@ class GetSupportedOrderTypes():
                         153: 'MarketIfTouched GFA'}
 
     def parse_pds_output(self, url):
-        if "ottif" in url:
+        if "ottif" in url or "pmerge" in url:
             headers = dict(self.headers, **self.auth)
         else:
             headers = dict(self.headers)
+        print("URL:", url)
         request = requests.get(url, headers=headers)
         output = request._content
         while ":false" in output:
@@ -140,7 +141,7 @@ class GetSupportedOrderTypes():
                 try:
                     output = full_output["entries"]
                 except KeyError:
-                    print "PDS Output parsing Error case:\n\n" + str(full_output)
+                    print("PDS Output parsing Error case:\n\n" + str(full_output))
         else:
             try:
                 output = full_output["instruments"]
@@ -162,7 +163,7 @@ class GetSupportedOrderTypes():
                 if market in str(market_id):
                     return str(market_id["i"])
             else:
-                print ("Market, \"{0}\" does not seem to exist.".format(market))
+                print("Market, \"{0}\" does not seem to exist.".format(market))
 
     def get_supported_order_types(self, market):
 
@@ -174,13 +175,24 @@ class GetSupportedOrderTypes():
             try:
                 qqq = o['ottifId']#, o['params'][0]['e']
             except KeyError:
-                print "\nKeyError case:\n\n" + str(o)
+                print("\nKeyError case:\n\n" + str(o))
                 supported_order_types = None
             except TypeError:
-                print "\nTypeError case:\n\n" + str(supported_order_types)
+                print("\nTypeError case:\n\n" + str(supported_order_types))
                 supported_order_types = None
 
         return supported_order_types
+
+    def get_pmerge_data(self, market):
+
+        market_id = self.get_market_id(market)
+        endpoint = "/api/1/pmerge/market/" + str(market_id)
+        url = self.base_url + endpoint
+
+        pmerge_data = self.parse_pds_output(url)
+
+        for pmg_entry in pmerge_data:
+            print(pmg_entry)
 
     def create_order_type_table(self):
 
@@ -214,7 +226,7 @@ class GetSupportedOrderTypes():
 
         list_of_all_possible_order_types.sort()
         for ot in list_of_all_possible_order_types:
-            print ot
+            print(ot)
 
         all_possible_order_types.sort()
 
@@ -233,7 +245,7 @@ class GetSupportedOrderTypes():
             try:
                 table_row = [self.ottifmap[possible_order_type], ]
             except KeyError:
-                print "KeyError:", possible_order_type
+                print("KeyError:", possible_order_type)
             for column in table_header:
                 for value in order_type_db.itervalues():
                     for k, v in value.iteritems():
@@ -249,4 +261,5 @@ class GetSupportedOrderTypes():
 
 
 runme = GetSupportedOrderTypes()
-runme.create_order_type_table()
+#runme.create_order_type_table()
+runme.get_pmerge_data("KRX")
