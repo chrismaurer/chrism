@@ -146,7 +146,7 @@ class TestPDSData:
         self.debug = False
 
         self.pdsdomain = "int-stage-cert"
-        self.market = "HKEX"
+        self.market = "SGX"
         self.market_stats = {0: {}, 1: {}}
 
         pds_url = "".join(["https://pds-", self.pdsdomain, ".trade.tt"])
@@ -169,7 +169,7 @@ class TestPDSData:
         # ndaqeu_to_nasdaqned_options.csv
         # self.prod_list = ["8TRA", "O8TRA", "AAK", "OAAK", "ABB", "OABB", "ALFA", "OALFA", "ASSAB", "OASSAB", "ATCOA", "OATCOA", "AXFO", "OAXFO", "AZN", "OAZN", "BALDB", "OBALDB", "BETSB", "OBETSB", "BILL", "OBILL", "BOLI", "OBOLI", "CARLB", "OCARLB", "CAST", "OCAST", "CHR", "OCHR", "COLOB", "OCOLOB", "DANSKE", "ODANSK", "DNORD", "ODNORD", "DOM", "ODOM", "DSV", "ODSV", "EKTAB", "OEKTAB", "ELUXB", "OELUXB", "EMBRAC", "OEMBRA", "EPIA", "OEPIA", "EQNR", "OEQNR", "EQT", "OEQT", "ERICB", "OERICB", "ESSITB", "OESSIT", "EVO", "OEVO", "FABG", "OFABG", "FINGB", "OFINGB", "FLS", "OFLS", "GEN", "OGEN", "GETIB", "OGETIB", "GN", "OGN", "HEXB", "OHEXB", "HMB", "OHMB", "HOLMB", "OHOLMB", "HPOL", "OHPOL", "HUH1V", "OHUH1V", "HUSQB", "OHUSQB", "ICA", "OICA", "IJ", "OIJ", "INDUC", "OINDUC", "INVEB", "OINVEB", "ISS", "OISS", "JM", "OJM", "JYSK", "OJYSK", "KINB", "OKINB", "KIND", "OKIND", "KRA1V", "OKRA1V", "LUMI", "OLUMI", "LUN", "OLUN", "LUPE", "OLUPE", "MAERSK", "OMAERS", "METSB", "OMETSB", "MOCORP", "OMOCOR", "MTGB", "OMTGB", "NCC", "ONCC", "NDASE", "ONDASE", "NELES", "ONELES", "NHY", "ONHYN", "NIBE", "ONIBE", "NOKI", "ONOKIA", "NOKIA", "ONOKIA", "NOVOB", "ONOVOB", "NRE1V", "ONRE1V", "NZYMB", "ONZYMB", "OMXC25", "OXC25", "OMXO20", "OXO20", "OMXS30", "OXS30", "ORSTED", "OORSTE", "OUT1V", "OOUT1V", "PCELL", "OPCELL", "PNDORA", "OPNDOR", "SAAB", "OSAAB", "SAND", "OSAND", "SAS", "OSAS", "SCAB", "OSCAB", "SEBA", "OSEBA", "SECUB", "OSECUB", "SHBA", "OSHBA", "SKAB", "OSKAB", "SKFB", "OSKFB", "SOBI", "OSOBI", "SSABA", "OSSABA", "STER", "OSTER", "SWEDA", "OSWEDA", "SWMA", "OSWMA", "SYDB", "OSYDB", "TEL2B", "OTEL2B", "TIGO", "OTIGO", "TLSN", "OTLSN", "TRELB", "OTRELB", "TRYG", "OTRYG", "VOLVB", "OVOLVB", "VWS", "OVWS", "WDH", "OWDH", "WRT1V", "OWRT1V", "XACT", "OXACT", "YTY1V", "OYTY1V"]
         # ndaqeu_to_nasdaqned_others.csv
-        self.prod_list = ["ALBW", "BIUW", "BYDW", "HEXW", "HKBW", "JDCW", "KSTW", "METW", "PAIW", "TCHW"]  # , "SBM", "SBN", "SBP", "SBQ", "SBS", "SBT", "SBV", "SBW", "SBX", "SBY", "SBZ", "SC0", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8", "SC9", "SCA", "SCB", "SCC", "SCD", "SCE", "SCF", "SCG", "SCJ", "SCK", "SCL", "SCN", "SCP", "SCQ", "SCR", "SCS", "SCT", "SCV", "SCW", "SCX", "SCY", "SCZ", "SD0", "SD1", "SD2", "SD3", "SD4", "SD5", "SD6", "SD7", "SD8", "SD9", "SDA", "SDB", "SDC", "SDD", "SDE", "SDG", "SDH", "SDJ", "SDK", "SDL", "SDM", "SDN", "SDP", "SDR", "SDT", "SDV", "SDW", "SDY", "SDZ", "SE0", "SE1", "SE2", "SE3", "SE4", "SE5", "SE6", "SE8", "SE9", "SEA", "SEB", "SEC", "SED", "SEE", "SEF", "SEG", "SEH", "SEJ", "SEK", "SEL", "SEM", "SEN", "SEP", "SEQ", "SER", "SES", "SET", "SEV", "SEW", "SEX", "SEY", "SEZ", "SF0", "SF1", "SF2", "SF3", "SF4", "SF5", "SF6", "SF7", "SF8", "SF9", "SFA", "SFB", "SFC", "SFD", "SFE", "SFF", "SFG", "SFH", "SFJ", "SFK", "SFL", "SFM", "SFN", "SFP", "SFQ"]  # "EY", "EYO", "O3", "O3O"]  # "CX01F", "CX03F", "CX11F", "CX13F"]  # "8TRA_C", "28TRA", "8TRA_F", "W8TRA", "AAK_C", "2AAK", "AAK_F", "WAAK", "ABB_C", "2ABB", "ABB_F", "WABB", "AKERBP_C", "2AKERB", "AKERBP_F", "WAKERB", "AKSO_C", "2AKSO", "AKSO_F", "WAKSO", "ALFA_C", "2ALFA", "ALFA_F", "WALFA", "ASSAB_C", "2ASSAB", "ASSAB_F", "WASSAB", "ATCOA_C", "2ATCOA", "ATCOA_F", "WATCOA", "AXFO_C", "2AXFO", "AXFO_F", "WAXFO", "AZN_C", "2AZN", "AZN_F", "WAZN", "BAKKA_C", "2BAKKA", "BAKKA_F", "WBAKKA", "BALDB_C", "2BALDB", "BALDB_F", "WBALDB", "BETSB_C", "2BETSB", "BETSB_F", "WBETSB", "BILL_C", "2BILL", "BILL_F", "WBILL", "BOLI_C", "2BOLI", "BOLI_F", "WBOLI", "CARLB_C", "2CARLB", "CAST_C", "2CAST", "CAST_F", "WCAST", "CHR_C", "2CHR", "COLOB_C", "2COLOB", "DANSKE_C", "2DANSK", "DNB_C", "2DNBN", "DNB_F", "WDNBN", "DNORD_C", "2DNORD", "DNO_C", "2DNO", "DNO_F", "WDNO", "DOM_C", "2DOM", "DOM_F", "WDOM", "DSV_C", "2DSV", "EKTAB_C", "2EKTAB", "EKTAB_F", "WEKTAB", "ELI1V_F", "WELI1V", "ELUXB_C", "2ELUXB", "ELUXB_F", "WELUXB", "EMBRAC_C", "2EMBRA", "EMBRAC_F", "WEMBRA", "EPIA_C", "2EPIA", "EPIA_F", "WEPIA", "EQNR_C", "2EQNR", "EQNR_F", "WEQNR", "EQT_C", "2EQT", "EQT_F", "WEQT", "ERICB_C", "2ERICB", "ERICB_F", "WERICB", "ESSITB_C", "2ESSIT", "ESSITB_F", "WESSIT", "EVO_C", "2EVO", "EVO_F", "WEVO", "FABG_C", "2FABG", "FABG_F", "WFABG", "FINGB_C", "2FINGB", "FINGB_F", "WFINGB", "FLS_C", "2FLS", "FRO_C", "2FRO", "FRO_F", "WFRO", "FUM1V_F", "WFUM1V", "GEN_C", "2GEN", "GETIB_C", "2GETIB", "GETIB_F", "WGETIB", "GJF_C", "2GJFN", "GJF_F", "WGJFN", "GN_C", "2GN", "HEXB_C", "2HEXB", "HEXB_F", "WHEXB", "HMB_C", "2HMB", "HMB_F", "WHMB", "HOLMB_C", "2HOLMB", "HOLMB_F", "WHOLMB", "HPOL_C", "2HPOL", "HPOL_F", "WHPOL", "HUH1V_F", "WHUH1V", "HUSQB_C", "2HUSQB", "HUSQB_F", "WHUSQB", "ICA_C", "2ICA", "ICA_F", "WICA", "IJ_C", "2IJ", "IJ_F", "WIJ", "INDUC_C", "2INDUC", "INDUC_F", "WINDUC", "INVEB_C", "2INVEB", "INVEB_F", "WINVEB", "ISS_C", "2ISS", "JM_C", "2JM", "JM_F", "WJM", "JYSK_C", "2JYSK", "KINB_C", "2KINB", "KINB_F", "WKINB", "KIND_C", "2KIND", "KIND_F", "WKIND", "KNEBV_F", "WKNEBV", "KRA1V_F", "WKRA1V", "LUMI_C", "2LUMI", "LUMI_F", "WLUMI", "LUN_C", "2LUN", "LUPE_C", "2LUPE", "LUPE_F", "WLUPE", "MAERSK_C", "2MAERS", "METSB_F", "WMETSB", "MOCORP_F", "WMOCOR", "MOWI_C", "2MOWI", "MOWI_F", "WMOWI", "MTGB_C", "2MTGB", "MTGB_F", "WMTGB", "NAS_C", "2NAS", "NAS_F", "WNAS", "NCC_C", "2NCC", "NCC_F", "WNCC", "NDAFI_F", "WNDAFI", "NDASE_C", "2NDASE", "NDASE_F", "WNDASE", "NELES_F", "WNELES", "NESTE_F", "WNESTE", "NHY_C", "2NHYN", "NHY_F", "WNHYN", "NIBE_C", "2NIBE", "NIBE_F", "WNIBE", "NOD_C", "2NOD", "NOD_F", "WNOD", "NOK1V_F", "WNOK1V", "NOKI_C", "2NOKIA", "NOKI_F", "WNOKIA", "NOVOB_C", "2NOVOB", "NRE1V_F", "WNRE1V", "NZYMB_C", "2NZYMB", "ORK_C", "2ORKN", "ORK_F", "WORKN", "ORSTED_C", "2ORSTE", "OUT1V_F", "WOUT1V", "PCELL_C", "2PCELL", "PCELL_F", "WPCELL", "PGS_C", "2PGSN", "PGS_F", "WPGSN", "PNDORA_C", "2PNDOR", "REC_C", "2RECN", "REC_F", "WRECN", "SAAB_C", "2SAAB", "SAAB_F", "WSAAB", "SAMAS_F", "WSAMAS", "SAND_C", "2SAND", "SAND_F", "WSAND", "SAS_C", "2SAS", "SAS_F", "WSAS", "SCAB_C", "2SCAB", "SCAB_F", "WSCAB", "SCHA_C", "2SCHA", "SCHA_F", "WSCHA", "SEBA_C", "2SEBA", "SEBA_F", "WSEBA", "SECUB_C", "2SECUB", "SECUB_F", "WSECUB", "SHBA_C", "2SHBA", "SHBA_F", "WSHBA", "SKAB_C", "2SKAB", "SKAB_F", "WSKAB", "SKFB_C", "2SKFB", "SKFB_F", "WSKFB", "SOBI_C", "2SOBI", "SOBI_F", "WSOBI", "SSABA_C", "2SSABA", "SSABA_F", "WSSABA", "STB_C", "2STBN", "STB_F", "WSTBN", "STERV_F", "WSTERV", "STER_C", "2STER", "STER_F", "WSTER", "SUBC_C", "2SUBCN", "SUBC_F", "WSUBCN", "SWEDA_C", "2SWEDA", "SWEDA_F", "WSWEDA", "SWMA_C", "2SWMA", "SWMA_F", "WSWMA", "SYDB_C", "2SYDB", "TEL2B_C", "2TEL2B", "TEL2B_F", "WTEL2B", "TEL_C", "2TELN", "TEL_F", "WTELN", "TGS_C", "2TGS", "TGS_F", "WTGS", "TIE1V_F", "WTIE1V", "TIGO_C", "2TIGO", "TIGO_F", "WTIGO", "TLS1V_F", "WTLS1V", "TLSN_C", "2TLSN", "TLSN_F", "WTLSN", "TRELB_C", "2TRELB", "TRELB_F", "WTRELB", "TRYG_C", "2TRYG", "UPM1V_F", "WUPM1V", "VOLVB_C", "2VOLVB", "VOLVB_F", "WVOLVB", "VWS_C", "2VWS", "WDH_C", "2WDH", "WRT1V_F", "WWRT1V", "XXL_C", "2XXL", "XXL_F", "WXXL", "YAR_C", "2YARN", "YAR_F", "WYARN", "YTY1V_F", "WYTY1V"]
+        self.prod_list = ["ZIHF", ]  # , "SBM", "SBN", "SBP", "SBQ", "SBS", "SBT", "SBV", "SBW", "SBX", "SBY", "SBZ", "SC0", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8", "SC9", "SCA", "SCB", "SCC", "SCD", "SCE", "SCF", "SCG", "SCJ", "SCK", "SCL", "SCN", "SCP", "SCQ", "SCR", "SCS", "SCT", "SCV", "SCW", "SCX", "SCY", "SCZ", "SD0", "SD1", "SD2", "SD3", "SD4", "SD5", "SD6", "SD7", "SD8", "SD9", "SDA", "SDB", "SDC", "SDD", "SDE", "SDG", "SDH", "SDJ", "SDK", "SDL", "SDM", "SDN", "SDP", "SDR", "SDT", "SDV", "SDW", "SDY", "SDZ", "SE0", "SE1", "SE2", "SE3", "SE4", "SE5", "SE6", "SE8", "SE9", "SEA", "SEB", "SEC", "SED", "SEE", "SEF", "SEG", "SEH", "SEJ", "SEK", "SEL", "SEM", "SEN", "SEP", "SEQ", "SER", "SES", "SET", "SEV", "SEW", "SEX", "SEY", "SEZ", "SF0", "SF1", "SF2", "SF3", "SF4", "SF5", "SF6", "SF7", "SF8", "SF9", "SFA", "SFB", "SFC", "SFD", "SFE", "SFF", "SFG", "SFH", "SFJ", "SFK", "SFL", "SFM", "SFN", "SFP", "SFQ"]  # "EY", "EYO", "O3", "O3O"]  # "CX01F", "CX03F", "CX11F", "CX13F"]  # "8TRA_C", "28TRA", "8TRA_F", "W8TRA", "AAK_C", "2AAK", "AAK_F", "WAAK", "ABB_C", "2ABB", "ABB_F", "WABB", "AKERBP_C", "2AKERB", "AKERBP_F", "WAKERB", "AKSO_C", "2AKSO", "AKSO_F", "WAKSO", "ALFA_C", "2ALFA", "ALFA_F", "WALFA", "ASSAB_C", "2ASSAB", "ASSAB_F", "WASSAB", "ATCOA_C", "2ATCOA", "ATCOA_F", "WATCOA", "AXFO_C", "2AXFO", "AXFO_F", "WAXFO", "AZN_C", "2AZN", "AZN_F", "WAZN", "BAKKA_C", "2BAKKA", "BAKKA_F", "WBAKKA", "BALDB_C", "2BALDB", "BALDB_F", "WBALDB", "BETSB_C", "2BETSB", "BETSB_F", "WBETSB", "BILL_C", "2BILL", "BILL_F", "WBILL", "BOLI_C", "2BOLI", "BOLI_F", "WBOLI", "CARLB_C", "2CARLB", "CAST_C", "2CAST", "CAST_F", "WCAST", "CHR_C", "2CHR", "COLOB_C", "2COLOB", "DANSKE_C", "2DANSK", "DNB_C", "2DNBN", "DNB_F", "WDNBN", "DNORD_C", "2DNORD", "DNO_C", "2DNO", "DNO_F", "WDNO", "DOM_C", "2DOM", "DOM_F", "WDOM", "DSV_C", "2DSV", "EKTAB_C", "2EKTAB", "EKTAB_F", "WEKTAB", "ELI1V_F", "WELI1V", "ELUXB_C", "2ELUXB", "ELUXB_F", "WELUXB", "EMBRAC_C", "2EMBRA", "EMBRAC_F", "WEMBRA", "EPIA_C", "2EPIA", "EPIA_F", "WEPIA", "EQNR_C", "2EQNR", "EQNR_F", "WEQNR", "EQT_C", "2EQT", "EQT_F", "WEQT", "ERICB_C", "2ERICB", "ERICB_F", "WERICB", "ESSITB_C", "2ESSIT", "ESSITB_F", "WESSIT", "EVO_C", "2EVO", "EVO_F", "WEVO", "FABG_C", "2FABG", "FABG_F", "WFABG", "FINGB_C", "2FINGB", "FINGB_F", "WFINGB", "FLS_C", "2FLS", "FRO_C", "2FRO", "FRO_F", "WFRO", "FUM1V_F", "WFUM1V", "GEN_C", "2GEN", "GETIB_C", "2GETIB", "GETIB_F", "WGETIB", "GJF_C", "2GJFN", "GJF_F", "WGJFN", "GN_C", "2GN", "HEXB_C", "2HEXB", "HEXB_F", "WHEXB", "HMB_C", "2HMB", "HMB_F", "WHMB", "HOLMB_C", "2HOLMB", "HOLMB_F", "WHOLMB", "HPOL_C", "2HPOL", "HPOL_F", "WHPOL", "HUH1V_F", "WHUH1V", "HUSQB_C", "2HUSQB", "HUSQB_F", "WHUSQB", "ICA_C", "2ICA", "ICA_F", "WICA", "IJ_C", "2IJ", "IJ_F", "WIJ", "INDUC_C", "2INDUC", "INDUC_F", "WINDUC", "INVEB_C", "2INVEB", "INVEB_F", "WINVEB", "ISS_C", "2ISS", "JM_C", "2JM", "JM_F", "WJM", "JYSK_C", "2JYSK", "KINB_C", "2KINB", "KINB_F", "WKINB", "KIND_C", "2KIND", "KIND_F", "WKIND", "KNEBV_F", "WKNEBV", "KRA1V_F", "WKRA1V", "LUMI_C", "2LUMI", "LUMI_F", "WLUMI", "LUN_C", "2LUN", "LUPE_C", "2LUPE", "LUPE_F", "WLUPE", "MAERSK_C", "2MAERS", "METSB_F", "WMETSB", "MOCORP_F", "WMOCOR", "MOWI_C", "2MOWI", "MOWI_F", "WMOWI", "MTGB_C", "2MTGB", "MTGB_F", "WMTGB", "NAS_C", "2NAS", "NAS_F", "WNAS", "NCC_C", "2NCC", "NCC_F", "WNCC", "NDAFI_F", "WNDAFI", "NDASE_C", "2NDASE", "NDASE_F", "WNDASE", "NELES_F", "WNELES", "NESTE_F", "WNESTE", "NHY_C", "2NHYN", "NHY_F", "WNHYN", "NIBE_C", "2NIBE", "NIBE_F", "WNIBE", "NOD_C", "2NOD", "NOD_F", "WNOD", "NOK1V_F", "WNOK1V", "NOKI_C", "2NOKIA", "NOKI_F", "WNOKIA", "NOVOB_C", "2NOVOB", "NRE1V_F", "WNRE1V", "NZYMB_C", "2NZYMB", "ORK_C", "2ORKN", "ORK_F", "WORKN", "ORSTED_C", "2ORSTE", "OUT1V_F", "WOUT1V", "PCELL_C", "2PCELL", "PCELL_F", "WPCELL", "PGS_C", "2PGSN", "PGS_F", "WPGSN", "PNDORA_C", "2PNDOR", "REC_C", "2RECN", "REC_F", "WRECN", "SAAB_C", "2SAAB", "SAAB_F", "WSAAB", "SAMAS_F", "WSAMAS", "SAND_C", "2SAND", "SAND_F", "WSAND", "SAS_C", "2SAS", "SAS_F", "WSAS", "SCAB_C", "2SCAB", "SCAB_F", "WSCAB", "SCHA_C", "2SCHA", "SCHA_F", "WSCHA", "SEBA_C", "2SEBA", "SEBA_F", "WSEBA", "SECUB_C", "2SECUB", "SECUB_F", "WSECUB", "SHBA_C", "2SHBA", "SHBA_F", "WSHBA", "SKAB_C", "2SKAB", "SKAB_F", "WSKAB", "SKFB_C", "2SKFB", "SKFB_F", "WSKFB", "SOBI_C", "2SOBI", "SOBI_F", "WSOBI", "SSABA_C", "2SSABA", "SSABA_F", "WSSABA", "STB_C", "2STBN", "STB_F", "WSTBN", "STERV_F", "WSTERV", "STER_C", "2STER", "STER_F", "WSTER", "SUBC_C", "2SUBCN", "SUBC_F", "WSUBCN", "SWEDA_C", "2SWEDA", "SWEDA_F", "WSWEDA", "SWMA_C", "2SWMA", "SWMA_F", "WSWMA", "SYDB_C", "2SYDB", "TEL2B_C", "2TEL2B", "TEL2B_F", "WTEL2B", "TEL_C", "2TELN", "TEL_F", "WTELN", "TGS_C", "2TGS", "TGS_F", "WTGS", "TIE1V_F", "WTIE1V", "TIGO_C", "2TIGO", "TIGO_F", "WTIGO", "TLS1V_F", "WTLS1V", "TLSN_C", "2TLSN", "TLSN_F", "WTLSN", "TRELB_C", "2TRELB", "TRELB_F", "WTRELB", "TRYG_C", "2TRYG", "UPM1V_F", "WUPM1V", "VOLVB_C", "2VOLVB", "VOLVB_F", "WVOLVB", "VWS_C", "2VWS", "WDH_C", "2WDH", "WRT1V_F", "WWRT1V", "XXL_C", "2XXL", "XXL_F", "WXXL", "YAR_C", "2YARN", "YAR_F", "WYARN", "YTY1V_F", "WYTY1V"]
 
         # self.prod_list = ["OM-PT|OM-GD", "GLDM|PLTM", "OPTCD|OGDCD", "GLDD|PLTD",
         #                    "OTSR2|ORSS3", "RSS3|TSR2", "CKER|CGAS", "CGAS|CKRO", "CRUD|GASO", "GAS|DBAI",
@@ -1795,6 +1795,8 @@ class TestPDSData:
 
     def generate_pmerge(self):
         # Get a total instrument count
+        new_point_value = raw_input("If you need a point value update, enter it here: ")
+        new_product_name = raw_input("If you need a product name, enter it here: ")
 
         print("PLTM,2,0,80,0,1,1,0,0,1,0,JPY, , ,Mini Platinum Futures Spreads")
         print("CMEP,1,0,10000,0,1,1,0,0,5,100,JPY,,,CME Group Petroleum Index Futures")
@@ -1807,6 +1809,7 @@ class TestPDSData:
         pmg_values_list = []
         pmg_file_list = []
         pmg_product_types = {34 : 1, 43 : 2, 51: 3, 200: 4, 20 : 5, 77 : 6}
+        pmg_product_type_strings = {'1': 'Futures', '2': 'Spreads', '3': 'Options', '4': 'Options', '6': 'Bonds'}
         if mds_pmerge_format:
             print("idPMerge,AllProduct_Symbol,Market_idMarket,ProductType_idProductType,AllInstrument_idInstrument,PointValue,TickSizeNumerator,TickSizeDenominator,TickValue,CurrencyType_idCurrencyType,PriceDecimalsCount,ProductName")
 
@@ -1849,7 +1852,7 @@ class TestPDSData:
                     tick_numerator = str(instrument_definition['TickSizeNum'])  # Tick Size Numerator
                     tick_denominator = str(instrument_definition['TickSizeDenom'])  # Tick Size Denominator
                     marketTypeId = str(instrument_definition['MarketId'])  # Market ID
-                    priceDisplayDecimals = str(int(instrument_definition['PriceDec'])) if self.market in ['TFEX', 'JPX'] else '0'  # Point Value Decimals
+                    priceDisplayDecimals = str(int(instrument_definition['PriceDec'])) if self.market in ['CME', 'TFEX', 'JPX'] else '0'  # Point Value Decimals
                     round_lot_qty = str(instrument_definition['RoundLotQty'])  # Round Lot Quantity
                     price_format = str(instrument_definition['DispFormatId'])  # Tick Fractional
                     price_display_type = str(instrument_definition['PriceDisplayTypeId'])  # Price Display Type
@@ -1861,18 +1864,32 @@ class TestPDSData:
                         tick_denominator, currency, ' ', ' ', name)
                     pmg_values_list.append(pmg_values_line)
 
+                    # Set correct Product Name based on user input value
+                    adjusted_productName = None
+                    if len(new_product_name) > 0:
+                        adjusted_productName = " ".join([new_product_name, pmg_product_type_strings[ptype]])
+
+                    # Set correct point value based on priceDisplayDecimals value
+                    adjusted_point_value = None
+                    if len(new_point_value) > 0:
+                        adjusted_point_value = "".join([str(new_point_value), "0" * int(priceDisplayDecimals)])
+
                     # Generate PMG file Output Rows
                     # if self.market == 'JPX':
                     #     point_value = int(point_value) * int("1" + "7".zfill(int(priceDisplayDecimals)).replace("7", "0")) if int(priceDisplayDecimals) > 0 else point_value
+
+                    output_point_value = adjusted_point_value if adjusted_point_value is not None else point_value
+                    output_product_name = adjusted_productName if adjusted_productName is not None else name
+
                     if mds_pmerge_format:
                         self.get_market_id(self.market)
                         point_value = int(point_value)
                         pmg_file_line = ' ,{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}'.format(
-                            symbol, self.get_market_id(self.market), ptype, 'NULL', int(point_value), tick_numerator, tick_denominator, 'NULL', currency_id, 'NULL', name)
+                            symbol, self.get_market_id(self.market), ptype, 'NULL', int(output_point_value), tick_numerator, tick_denominator, 'NULL', currency_id, 'NULL', output_product_name)
                     else:
                         pmg_file_line = '{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14}'.format(
-                            symbol, ptype, '0', int(point_value), priceDisplayDecimals, ' ', ' ', ' ', ' ', tick_numerator,
-                            tick_denominator, currency, ' ', ' ', name)
+                            symbol, ptype, '0', int(output_point_value), priceDisplayDecimals, ' ', ' ', ' ', ' ', tick_numerator,
+                            tick_denominator, currency, ' ', ' ', output_product_name)
                     pmg_file_list.append(pmg_file_line)
 
         print("\n\nCurrently-Published pmerge values.")
@@ -3601,7 +3618,7 @@ class TestPDSData:
 
 runme = TestPDSData()
 # runme.verify_environment_diff()
-runme.verify_product_data()
+# runme.verify_product_data()
 # runme.custom()
-# runme.generate_pmerge()
+runme.generate_pmerge()
 # runme.custom()
