@@ -37,7 +37,7 @@ def get_term_values(term):
             return {"year": term_year, "month": term_month}
         term_data = list(term)
         if term.isdigit():
-            term_year = "%02d" % (int(''.join(term_data[-2:])))
+            term_year = "%02d" % (int(''.join(term_data[-2:]))) if [term_data[0], term_data[1]] != ['2', '0'] else int(''.join(term_data[2:4]))
             term_month = 00
             return {"year": term_year, "month": term_month}
         if len(term_data) < 7:
@@ -58,6 +58,7 @@ def get_term_values(term):
 
 
 def get_alias_term_values(alias):
+    debug_mode = True
     MMM_to_int = {name: num for num, name in enumerate(calendar.month_abbr) if num}
 
     if alias.startswith("Q"):
@@ -67,14 +68,14 @@ def get_alias_term_values(alias):
         alias = alias.replace("Q4", "Dec")
 
     if "W" in alias:
-        try:
-            alias_list = alias.split("-") if "-" in str(alias) else alias.split(" ")
-            alias_year = "%02d" % (int(''.join(alias_list[1]))) if int(''.join(alias_list[1])) > 22 else "%02d" % (int(''.join(alias_list[3])))
-            alias_month_raw = MMM_to_int[(''.join(list(alias_list[0])[3:]))] if (len(alias_list[0]) == 3 and alias_list[0].isdigit == False) else MMM_to_int[(''.join(list(alias_list[2])))]
-            alias_month = "%02d" % (alias_month_raw,) if int("%02d" % (alias_month_raw,)) <= 12 else"%02d" % (int(''.join(alias_list[1])))
-            return {"year": alias_year, "month": alias_month}
-        except:
-            print("get_alias_term_values Error: {}".format(alias))
+        # try:
+        alias_list = alias.split("-") if "-" in str(alias) else alias.split(" ")
+        alias_year = "%02d" % (int(''.join(alias_list[1]))) if int(''.join(alias_list[1])) > 22 else "%02d" % (int(''.join(alias_list[3])))
+        alias_month_raw = MMM_to_int[(''.join(list(alias_list[0])[3:]))] if (len(list(alias_list[0])[3:]) == 3 and (''.join(list(alias_list[0])[3:])).isdigit() == False) else MMM_to_int[(''.join(list(alias_list[2])))]
+        alias_month = "%02d" % (alias_month_raw,) if int("%02d" % (alias_month_raw,)) <= 12 else"%02d" % (int(''.join(alias_list[1])))
+        return {"year": alias_year, "month": alias_month}
+        # except:
+        #     print("get_alias_term_values Error: {}".format(alias))
 
     if len(alias.split("-")) > 1:
         alias = alias.split("-")[0]
@@ -84,6 +85,8 @@ def get_alias_term_values(alias):
     if len(term_data) == 2 or len(term_data) == 3:
         mmmyy_list = list(term_data[1])
         term_year = "%02d" % (int(''.join(mmmyy_list[-2:])))  #  if len(term_data[3]) >= 3 else (int(term_data[1]))
+        if debug_mode:
+            print("''.join(mmmyy_list[:3]) =", ''.join(mmmyy_list[:3]))
         term_month = "%02d" % MMM_to_int[''.join(mmmyy_list[:3])]
         return {"year": term_year, "month": term_month}
     elif len(term_data.split(" ")) > 4:
@@ -96,6 +99,11 @@ def get_alias_term_values(alias):
             term_month = "%02d" % (int(''.join(list(term_data)[4:6])))
             return {"year": term_year, "month": term_month}
         except:
+            if debug_mode:
+                print("alias =", alias)
+                print("term_year =", term_year)
+                print("term_month_raw =", term_month_raw)
+                print("term_month =", term_month)
             term_year = int("20" + ''.join(list(term_data)[-2:]))
             term_month_raw = MMM_to_int[(''.join(term_data.split(" ")[1][0:3]))]
             term_month = "%02d" % (term_month_raw,)
@@ -145,8 +153,8 @@ class TestPDSData:
 
         self.debug = False
 
-        self.pdsdomain = "int-stage-cert"
-        self.market = "SGX"
+        self.pdsdomain = "ext-uat-cert"
+        self.market = "HKEX"
         self.market_stats = {0: {}, 1: {}}
 
         pds_url = "".join(["https://pds-", self.pdsdomain, ".trade.tt"])
@@ -155,7 +163,7 @@ class TestPDSData:
         self.headers = {'content-type': 'application/json'}
 
         self.product_types = self.get_product_type_dict()
-        # self.product_types = {34: 'FUT'}  # , 43: 'MLEG'}  # 34: 'FUT', 43: 'MLEG', 51: 'OPT', 43: MLEG, 77: TBOND, 200: STRA, 203: CUR}
+        # self.product_types = {51: 'OPT'}  # , 43: 'MLEG'}  # 34: 'FUT', 43: 'MLEG', 51: 'OPT', 43: MLEG, 77: TBOND, 200: STRA, 203: CUR}
         self.all_products = []
         self.all_product_ids = []
         self.all_instrument_ids = []
@@ -169,7 +177,7 @@ class TestPDSData:
         # ndaqeu_to_nasdaqned_options.csv
         # self.prod_list = ["8TRA", "O8TRA", "AAK", "OAAK", "ABB", "OABB", "ALFA", "OALFA", "ASSAB", "OASSAB", "ATCOA", "OATCOA", "AXFO", "OAXFO", "AZN", "OAZN", "BALDB", "OBALDB", "BETSB", "OBETSB", "BILL", "OBILL", "BOLI", "OBOLI", "CARLB", "OCARLB", "CAST", "OCAST", "CHR", "OCHR", "COLOB", "OCOLOB", "DANSKE", "ODANSK", "DNORD", "ODNORD", "DOM", "ODOM", "DSV", "ODSV", "EKTAB", "OEKTAB", "ELUXB", "OELUXB", "EMBRAC", "OEMBRA", "EPIA", "OEPIA", "EQNR", "OEQNR", "EQT", "OEQT", "ERICB", "OERICB", "ESSITB", "OESSIT", "EVO", "OEVO", "FABG", "OFABG", "FINGB", "OFINGB", "FLS", "OFLS", "GEN", "OGEN", "GETIB", "OGETIB", "GN", "OGN", "HEXB", "OHEXB", "HMB", "OHMB", "HOLMB", "OHOLMB", "HPOL", "OHPOL", "HUH1V", "OHUH1V", "HUSQB", "OHUSQB", "ICA", "OICA", "IJ", "OIJ", "INDUC", "OINDUC", "INVEB", "OINVEB", "ISS", "OISS", "JM", "OJM", "JYSK", "OJYSK", "KINB", "OKINB", "KIND", "OKIND", "KRA1V", "OKRA1V", "LUMI", "OLUMI", "LUN", "OLUN", "LUPE", "OLUPE", "MAERSK", "OMAERS", "METSB", "OMETSB", "MOCORP", "OMOCOR", "MTGB", "OMTGB", "NCC", "ONCC", "NDASE", "ONDASE", "NELES", "ONELES", "NHY", "ONHYN", "NIBE", "ONIBE", "NOKI", "ONOKIA", "NOKIA", "ONOKIA", "NOVOB", "ONOVOB", "NRE1V", "ONRE1V", "NZYMB", "ONZYMB", "OMXC25", "OXC25", "OMXO20", "OXO20", "OMXS30", "OXS30", "ORSTED", "OORSTE", "OUT1V", "OOUT1V", "PCELL", "OPCELL", "PNDORA", "OPNDOR", "SAAB", "OSAAB", "SAND", "OSAND", "SAS", "OSAS", "SCAB", "OSCAB", "SEBA", "OSEBA", "SECUB", "OSECUB", "SHBA", "OSHBA", "SKAB", "OSKAB", "SKFB", "OSKFB", "SOBI", "OSOBI", "SSABA", "OSSABA", "STER", "OSTER", "SWEDA", "OSWEDA", "SWMA", "OSWMA", "SYDB", "OSYDB", "TEL2B", "OTEL2B", "TIGO", "OTIGO", "TLSN", "OTLSN", "TRELB", "OTRELB", "TRYG", "OTRYG", "VOLVB", "OVOLVB", "VWS", "OVWS", "WDH", "OWDH", "WRT1V", "OWRT1V", "XACT", "OXACT", "YTY1V", "OYTY1V"]
         # ndaqeu_to_nasdaqned_others.csv
-        self.prod_list = ["ZIHF", ]  # , "SBM", "SBN", "SBP", "SBQ", "SBS", "SBT", "SBV", "SBW", "SBX", "SBY", "SBZ", "SC0", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8", "SC9", "SCA", "SCB", "SCC", "SCD", "SCE", "SCF", "SCG", "SCJ", "SCK", "SCL", "SCN", "SCP", "SCQ", "SCR", "SCS", "SCT", "SCV", "SCW", "SCX", "SCY", "SCZ", "SD0", "SD1", "SD2", "SD3", "SD4", "SD5", "SD6", "SD7", "SD8", "SD9", "SDA", "SDB", "SDC", "SDD", "SDE", "SDG", "SDH", "SDJ", "SDK", "SDL", "SDM", "SDN", "SDP", "SDR", "SDT", "SDV", "SDW", "SDY", "SDZ", "SE0", "SE1", "SE2", "SE3", "SE4", "SE5", "SE6", "SE8", "SE9", "SEA", "SEB", "SEC", "SED", "SEE", "SEF", "SEG", "SEH", "SEJ", "SEK", "SEL", "SEM", "SEN", "SEP", "SEQ", "SER", "SES", "SET", "SEV", "SEW", "SEX", "SEY", "SEZ", "SF0", "SF1", "SF2", "SF3", "SF4", "SF5", "SF6", "SF7", "SF8", "SF9", "SFA", "SFB", "SFC", "SFD", "SFE", "SFF", "SFG", "SFH", "SFJ", "SFK", "SFL", "SFM", "SFN", "SFP", "SFQ"]  # "EY", "EYO", "O3", "O3O"]  # "CX01F", "CX03F", "CX11F", "CX13F"]  # "8TRA_C", "28TRA", "8TRA_F", "W8TRA", "AAK_C", "2AAK", "AAK_F", "WAAK", "ABB_C", "2ABB", "ABB_F", "WABB", "AKERBP_C", "2AKERB", "AKERBP_F", "WAKERB", "AKSO_C", "2AKSO", "AKSO_F", "WAKSO", "ALFA_C", "2ALFA", "ALFA_F", "WALFA", "ASSAB_C", "2ASSAB", "ASSAB_F", "WASSAB", "ATCOA_C", "2ATCOA", "ATCOA_F", "WATCOA", "AXFO_C", "2AXFO", "AXFO_F", "WAXFO", "AZN_C", "2AZN", "AZN_F", "WAZN", "BAKKA_C", "2BAKKA", "BAKKA_F", "WBAKKA", "BALDB_C", "2BALDB", "BALDB_F", "WBALDB", "BETSB_C", "2BETSB", "BETSB_F", "WBETSB", "BILL_C", "2BILL", "BILL_F", "WBILL", "BOLI_C", "2BOLI", "BOLI_F", "WBOLI", "CARLB_C", "2CARLB", "CAST_C", "2CAST", "CAST_F", "WCAST", "CHR_C", "2CHR", "COLOB_C", "2COLOB", "DANSKE_C", "2DANSK", "DNB_C", "2DNBN", "DNB_F", "WDNBN", "DNORD_C", "2DNORD", "DNO_C", "2DNO", "DNO_F", "WDNO", "DOM_C", "2DOM", "DOM_F", "WDOM", "DSV_C", "2DSV", "EKTAB_C", "2EKTAB", "EKTAB_F", "WEKTAB", "ELI1V_F", "WELI1V", "ELUXB_C", "2ELUXB", "ELUXB_F", "WELUXB", "EMBRAC_C", "2EMBRA", "EMBRAC_F", "WEMBRA", "EPIA_C", "2EPIA", "EPIA_F", "WEPIA", "EQNR_C", "2EQNR", "EQNR_F", "WEQNR", "EQT_C", "2EQT", "EQT_F", "WEQT", "ERICB_C", "2ERICB", "ERICB_F", "WERICB", "ESSITB_C", "2ESSIT", "ESSITB_F", "WESSIT", "EVO_C", "2EVO", "EVO_F", "WEVO", "FABG_C", "2FABG", "FABG_F", "WFABG", "FINGB_C", "2FINGB", "FINGB_F", "WFINGB", "FLS_C", "2FLS", "FRO_C", "2FRO", "FRO_F", "WFRO", "FUM1V_F", "WFUM1V", "GEN_C", "2GEN", "GETIB_C", "2GETIB", "GETIB_F", "WGETIB", "GJF_C", "2GJFN", "GJF_F", "WGJFN", "GN_C", "2GN", "HEXB_C", "2HEXB", "HEXB_F", "WHEXB", "HMB_C", "2HMB", "HMB_F", "WHMB", "HOLMB_C", "2HOLMB", "HOLMB_F", "WHOLMB", "HPOL_C", "2HPOL", "HPOL_F", "WHPOL", "HUH1V_F", "WHUH1V", "HUSQB_C", "2HUSQB", "HUSQB_F", "WHUSQB", "ICA_C", "2ICA", "ICA_F", "WICA", "IJ_C", "2IJ", "IJ_F", "WIJ", "INDUC_C", "2INDUC", "INDUC_F", "WINDUC", "INVEB_C", "2INVEB", "INVEB_F", "WINVEB", "ISS_C", "2ISS", "JM_C", "2JM", "JM_F", "WJM", "JYSK_C", "2JYSK", "KINB_C", "2KINB", "KINB_F", "WKINB", "KIND_C", "2KIND", "KIND_F", "WKIND", "KNEBV_F", "WKNEBV", "KRA1V_F", "WKRA1V", "LUMI_C", "2LUMI", "LUMI_F", "WLUMI", "LUN_C", "2LUN", "LUPE_C", "2LUPE", "LUPE_F", "WLUPE", "MAERSK_C", "2MAERS", "METSB_F", "WMETSB", "MOCORP_F", "WMOCOR", "MOWI_C", "2MOWI", "MOWI_F", "WMOWI", "MTGB_C", "2MTGB", "MTGB_F", "WMTGB", "NAS_C", "2NAS", "NAS_F", "WNAS", "NCC_C", "2NCC", "NCC_F", "WNCC", "NDAFI_F", "WNDAFI", "NDASE_C", "2NDASE", "NDASE_F", "WNDASE", "NELES_F", "WNELES", "NESTE_F", "WNESTE", "NHY_C", "2NHYN", "NHY_F", "WNHYN", "NIBE_C", "2NIBE", "NIBE_F", "WNIBE", "NOD_C", "2NOD", "NOD_F", "WNOD", "NOK1V_F", "WNOK1V", "NOKI_C", "2NOKIA", "NOKI_F", "WNOKIA", "NOVOB_C", "2NOVOB", "NRE1V_F", "WNRE1V", "NZYMB_C", "2NZYMB", "ORK_C", "2ORKN", "ORK_F", "WORKN", "ORSTED_C", "2ORSTE", "OUT1V_F", "WOUT1V", "PCELL_C", "2PCELL", "PCELL_F", "WPCELL", "PGS_C", "2PGSN", "PGS_F", "WPGSN", "PNDORA_C", "2PNDOR", "REC_C", "2RECN", "REC_F", "WRECN", "SAAB_C", "2SAAB", "SAAB_F", "WSAAB", "SAMAS_F", "WSAMAS", "SAND_C", "2SAND", "SAND_F", "WSAND", "SAS_C", "2SAS", "SAS_F", "WSAS", "SCAB_C", "2SCAB", "SCAB_F", "WSCAB", "SCHA_C", "2SCHA", "SCHA_F", "WSCHA", "SEBA_C", "2SEBA", "SEBA_F", "WSEBA", "SECUB_C", "2SECUB", "SECUB_F", "WSECUB", "SHBA_C", "2SHBA", "SHBA_F", "WSHBA", "SKAB_C", "2SKAB", "SKAB_F", "WSKAB", "SKFB_C", "2SKFB", "SKFB_F", "WSKFB", "SOBI_C", "2SOBI", "SOBI_F", "WSOBI", "SSABA_C", "2SSABA", "SSABA_F", "WSSABA", "STB_C", "2STBN", "STB_F", "WSTBN", "STERV_F", "WSTERV", "STER_C", "2STER", "STER_F", "WSTER", "SUBC_C", "2SUBCN", "SUBC_F", "WSUBCN", "SWEDA_C", "2SWEDA", "SWEDA_F", "WSWEDA", "SWMA_C", "2SWMA", "SWMA_F", "WSWMA", "SYDB_C", "2SYDB", "TEL2B_C", "2TEL2B", "TEL2B_F", "WTEL2B", "TEL_C", "2TELN", "TEL_F", "WTELN", "TGS_C", "2TGS", "TGS_F", "WTGS", "TIE1V_F", "WTIE1V", "TIGO_C", "2TIGO", "TIGO_F", "WTIGO", "TLS1V_F", "WTLS1V", "TLSN_C", "2TLSN", "TLSN_F", "WTLSN", "TRELB_C", "2TRELB", "TRELB_F", "WTRELB", "TRYG_C", "2TRYG", "UPM1V_F", "WUPM1V", "VOLVB_C", "2VOLVB", "VOLVB_F", "WVOLVB", "VWS_C", "2VWS", "WDH_C", "2WDH", "WRT1V_F", "WWRT1V", "XXL_C", "2XXL", "XXL_F", "WXXL", "YAR_C", "2YARN", "YAR_F", "WYARN", "YTY1V_F", "WYTY1V"]
+        self.prod_list = ["ALBW", "BIUW", "BYDW", "HEXW", "HKBW", "JDCW", "KSTW", "METW", "PAIW", "TCHW", "HHIW"]
 
         # self.prod_list = ["OM-PT|OM-GD", "GLDM|PLTM", "OPTCD|OGDCD", "GLDD|PLTD",
         #                    "OTSR2|ORSS3", "RSS3|TSR2", "CKER|CGAS", "CGAS|CKRO", "CRUD|GASO", "GAS|DBAI",
@@ -692,7 +700,7 @@ class TestPDSData:
                 instrument_id = str(next(get_instrument_id))
                 url = self.base_url + "/api/1/instruments?instrumentIds=" + instrument_id + "&slim=false"
                 if self.debug:
-                    print("DEBUG:", url)
+                    print("DEBUG: URL =", url)
                 instrument = self.parse_pds_output(url)
                 instrument = instrument[0]
                 instrument_definition = self.translate_instrument_data(instrument)
@@ -711,6 +719,8 @@ class TestPDSData:
                             break
 
                 alias = instrument_definition["Alias"]
+                # alias_month = get_alias_term_values(alias.split(" ")[1])['month']
+                alias_month = get_alias_term_values(alias)['month']
                 ric = instrument_definition["RICCode"]
                 bbc = instrument_definition["BloombergCode"]
                 ltd = instrument_definition["LastTradingDate"]
@@ -743,12 +753,8 @@ class TestPDSData:
                     continue
 
                 if term is not None:
-                    alias_term_dict = alias_term.split("-")[0] if "-" in alias_term else alias_term
-                    alias_term_dict = alias_term.split(":+")[0] if ":+" in alias_term else alias_term
                     alias_term_yyyy_mm = "".join(
-                        ["20", str(alias_term_dict['year']), str(alias_term_dict['month'])]) if len(
-                        str(alias_term_dict['year'])) == 2 \
-                        else "".join([str(alias_term_dict['year']), str(alias_term_dict['month'])])
+                        ["20", str(get_alias_term_values(alias)['year']), str(get_alias_term_values(alias)['month'])])
                     try:
                         term_values = get_term_values(term)
                         if len(str(term_values["year"])) == 4:
@@ -838,31 +844,12 @@ class TestPDSData:
                         print("FAIL: {0} maturity {1} is a weekend day".format(name, maturity_date))
 
                     # Verify Date Fields
-                    if ltd != exp_date_yyyy_mm_dd:
+                    if ltd != int(exp_date_yyyy_mm_dd):
                         instruments_with_incorrect_dates.append([alias, "LTD:", ltd, "Expiry:", exp_date_yyyy_mm_dd, "Maturity:", maturity_date])
                     elif ltd != maturity_date:
                         instruments_with_incorrect_dates.append([alias, "LTD:", ltd, "Expiry:", exp_date_yyyy_mm_dd, "Maturity:", maturity_date])
-                    elif exp_date_yyyy_mm_dd != maturity_date:
+                    elif int(exp_date_yyyy_mm_dd) != maturity_date:
                         instruments_with_incorrect_dates.append([alias, "LTD:", ltd, "Expiry:", exp_date_yyyy_mm_dd, "Maturity:", maturity_date])
-
-                    # Verify RIC Code
-                    if ric is None:
-                        instruments_with_no_ric_code.append(": ".join([alias, url]))
-                    else:
-                        if self.month_codes[ric_month] != alias_month:
-                            instruments_with_incorrect_ric_code.append(": ".join([alias, url]))
-                        else:
-                            all_ric_codes.append(": ".join([alias, url]))
-                    if ric in all_ric_codes:
-                        instruments_with_dup_ric_code.append(": ".join([alias, url]))
-
-                    # Verify BBG Code
-                    if bbc is None:
-                        instruments_with_no_bloomberg_code.append(": ".join([alias, url]))
-                    if bbc in all_bloomberg_codes:
-                        instruments_with_dup_bloomberg_code.append(": ".join([alias, url]))
-                    else:
-                        all_bloomberg_codes.append(": ".join([alias, url]))
 
                     # Verify RIC Code
                     if ric is None:
@@ -1852,7 +1839,10 @@ class TestPDSData:
                     tick_numerator = str(instrument_definition['TickSizeNum'])  # Tick Size Numerator
                     tick_denominator = str(instrument_definition['TickSizeDenom'])  # Tick Size Denominator
                     marketTypeId = str(instrument_definition['MarketId'])  # Market ID
-                    priceDisplayDecimals = str(int(instrument_definition['PriceDec'])) if self.market in ['CME', 'TFEX', 'JPX'] else '0'  # Point Value Decimals
+                    if instrument_definition['PriceDec'] is None:
+                        priceDisplayDecimals = ' '
+                    else:
+                        priceDisplayDecimals = str(int(instrument_definition['PriceDec'])) if self.market in ['CME', 'SGX_GIFT', 'TFEX', 'JPX'] else '0'  # Point Value Decimals
                     round_lot_qty = str(instrument_definition['RoundLotQty'])  # Round Lot Quantity
                     price_format = str(instrument_definition['DispFormatId'])  # Tick Fractional
                     price_display_type = str(instrument_definition['PriceDisplayTypeId'])  # Price Display Type
@@ -1872,7 +1862,7 @@ class TestPDSData:
                     # Set correct point value based on priceDisplayDecimals value
                     adjusted_point_value = None
                     if len(new_point_value) > 0:
-                        adjusted_point_value = "".join([str(new_point_value), "0" * int(priceDisplayDecimals)])
+                        adjusted_point_value = "".join([str(new_point_value), "0" * int(priceDisplayDecimals)]) if instrument_definition['PriceDec'] is not None else new_point_value
 
                     # Generate PMG file Output Rows
                     # if self.market == 'JPX':
@@ -3618,7 +3608,7 @@ class TestPDSData:
 
 runme = TestPDSData()
 # runme.verify_environment_diff()
-# runme.verify_product_data()
+runme.verify_product_data()
 # runme.custom()
-runme.generate_pmerge()
+# runme.generate_pmerge()
 # runme.custom()
